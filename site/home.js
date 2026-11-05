@@ -8,14 +8,6 @@
 Phosphor.content(String.raw`
 
 # Retired and discontinued projects, moved here from the letter.
-== file: attic ==
-retired and discontinued projects:
-~   nothing up here yet.
-
-== file: now ==
-what i am doing now:
-  ~ (edit the now file in site/home.js)
-
 == file: notes/todo ==
 [x] warm up the tube
 [x] teach it ls

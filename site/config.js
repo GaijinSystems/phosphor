@@ -8,22 +8,18 @@ Phosphor.content(String.raw`
 
 # The machine behind the glass, and which others the connect command offers (see
 # machines/machines.js). Unset: the first one, and all of them. One machine: no connect.
-# machine:  v7
-# machines: v7
+machine:  bsd
 
 # Your name. The first word (up to 8 letters) is the owner's login, shown in ls -l,
 # who and on the mail. {owner} in any section's text becomes that word.
-name:      operator
-
-# Your address, for the letter. {email} in any section's text becomes this.
-email:     operator@example.com
+name:      gaijin
 
 # Browser tab title, and the name on the monitor's bezel.
 title:     PHOSPHOR-9
 badge:     PHOSPHOR-9
 
 # Typing speed: 1 = normal, 1.25 = 25% faster.
-speed:     1
+speed:     1.25
 
 # yes = everything in capitals, like an uppercase-only teletype. Without this line: yes.
 uppercase: no

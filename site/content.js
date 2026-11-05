@@ -6,14 +6,14 @@ Phosphor.content(String.raw`
 
 # Printed after login (and kept in /etc/motd).
 == welcome ==
-welcome to {site}.
+welcome to phosphor-9.
 ~ type help and press return.
 
 # The about file and the about command.
 == about ==
-this terminal belongs to {owner}.
+this is the demo of phosphor-9, a terminal you can put on your own website.
 it is always {year} in here.
-~ (edit the about section in site/content.js)
+~ read your mail to find out how.
 
 # The letter (the mail command). "you have mail." shows at login while this has text.
 #
@@ -26,21 +26,21 @@ it is always {year} in here.
 # whatever year the machine is.
 # Retired projects move to the attic file (site/home.js).
 == mail ==
-welcome to {site}!
+welcome to phosphor-9!
 
-this is the letter every visitor finds waiting. say hello, say what this place is, and say what you are working on. it is one long line in site/content.js, and the glass wraps it.
+this is a video terminal for your website. it is plugged into six old machines: version 7 unix, 4.3bsd, vax/vms, ms-dos, cp/m and irix. type connect to change machines. you fill them with your own words.
 
-here is what is on the bench:
+it is plain html, css and javascript: no build step, no frameworks, no server code. copy the folder to any web server, edit the files in site/, and it is yours.
+
+take one home:
 ~ tap or click a title to visit.
 
-my next project               coming soon -> https://example.com
-my first project    ~~2025-06-01~~ {year}-01-01 -> https://example.com
+source code                     on github -> https://github.com/GaijinSystems/phosphor
+licence                      gnu agpl v3+ -> https://github.com/GaijinSystems/phosphor/blob/main/LICENSE
+gaijin systems             gaijin.systems -> https://gaijin.systems
 
 ~ no terminal should be without one!
 
-to reach the operator, write to:
-{email} -> mailto:{email}
-~ no modem detected. copy it down by hand.
 
 # A command of your own: == command: NAME | HELP TEXT == then what it prints.
 # Several names: == command: projects, proj | ... ==   No help text = hidden from help.
