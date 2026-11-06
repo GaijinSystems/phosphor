@@ -5,19 +5,23 @@
 
 P.command({names:['help'],core:true,terminal:true,
   man:{what:'list the commands',syn:'help',desc:[
-    'lists the commands, alphabetically, with a few words about each. man name says more about any of them.']},
+    'lists the commands, alphabetically, with a few words about each, and apart from them the ones the terminal answers itself. man name says more about any of them.']},
   run:function(){
-    var H=P.help(),man=P.has(P.cmds,'man');
+    var H=P.help(),man=P.has(P.cmds,'man'),split=!P.profile.noUnix; /* the other machines' help is all the terminal's */
     H.sort(function(a,b){return a[0].toLowerCase()<b[0].toLowerCase()?-1:1}); /* alphabetical */
-    P.say(['commands:'].concat(H.map(function(h){return ['  '+h[0].padEnd(13)+' '+h[1],'',{hang:16}]}), /* wraps under its description */
-      man?['',['man name for details, or name -h.','dim']]:[]));
+    function rows(L){return L.map(function(h){return ['  '+h[0].padEnd(13)+' '+h[1],'',{hang:16}]})} /* wraps under its description */
+    var own=H.filter(function(h){return split&&P.own(h[0])});
+    P.say(['commands:'].concat(rows(H.filter(function(h){return own.indexOf(h)<0})),
+      own.length?['',"the terminal's, not the machine's:"]:[],rows(own),
+      man?['',['man name for details, or name '+(P.profile.bash?'--help':'-h')+'.','dim']]:[]));
   }});
 
 P.command({names:['man'],core:true,help:'the manual',
   man:{what:'print the manual',syn:'man name',desc:[
-    'prints the manual page for name. with no name, the same as help.']},
+    'prints the manual page for name. with no name, lists the commands, as help does; berkeley\'s man just says how to use it.']},
   run:function(a){
     if(!a[0]){
+      if(P.profile.perror){P.typeLine('Usage: man [ section ] name ...');return}
       if(P.has(P.cmds,'help')){P.cmds.help([],'help');return}
       P.say(['usage: man name',['pages: '+Object.keys(P.man).sort().join(', '),'dim',{hang:7}]]); /* help is switched off */
       return;
@@ -27,7 +31,7 @@ P.command({names:['man'],core:true,help:'the manual',
   }});
 
 /* aliases, on the machines whose shell had them: from the == aliases == section, plus any set this session */
-function aliasRow(a){var q=a.to.indexOf("'")>=0?'"':"'";return 'alias '+a.from.join(' ')+'='+q+a.to+q}
+function aliasRow(a){if(P.profile.csh)return a.from.join(' ')+'\t('+a.to+')';var q=a.to.indexOf("'")>=0?'"':"'";return 'alias '+a.from.join(' ')+'='+q+a.to+q}
 P.command({names:['alias'],core:true,noHelpFlag:true, /* -h inside a quoted command is not a request for help */
   man:{what:'list or set aliases',syn:"alias [ name[='command'] ]",desc:[
     'with no argument, lists every alias. with a name, shows that one alias.',
@@ -43,7 +47,7 @@ P.command({names:['alias'],core:true,noHelpFlag:true, /* -h inside a quoted comm
     var nm,to;
     if((m=rest.match(/^([^=]+?)\s*=\s*(.*)$/))){nm=P.fold(m[1]);to=P.unquote(m[2]).trim()}
     else{
-      var hit=P.aliases.filter(function(x){return x.from.join(' ')===P.fold(rest).split(/\s+/).join(' ')});
+      var key=P.fold(rest).split(/\s+/).join(' '),hit=P.aliases.filter(function(x){return x.from.join(' ')===key});
       if(hit.length){P.typeLine(aliasRow(hit[0]));return}
       if(rest.indexOf(' ')<0){P.typeLine('alias: '+P.fold(rest)+': not found','err');return}
       nm=P.fold(rest.split(/\s+/)[0]);to=P.unquote(rest.replace(/^\S+\s+/,'')); /* csh style: alias name value */
@@ -55,9 +59,9 @@ P.command({names:['alias'],core:true,noHelpFlag:true, /* -h inside a quoted comm
   }});
 
 P.command({names:['echo'],core:true,path:'/bin',noHelpFlag:true, /* echo -h prints -h, as it should */
-  man:{what:'echo arguments',syn:'echo [ arg ... ]',desc:[
-    'prints its arguments, separated by spaces.']},
-  run:function(a,raw,words){P.typeLine(words.slice(1).join(' '))}});
+  man:{what:'echo arguments',syn:'echo [ -n ] [ arg ... ]',desc:[
+    'prints its arguments, separated by spaces. -n would leave the line open; here every line ends.']},
+  run:function(a,raw,words){P.typeLine(words.slice(words[1]==='-n'?2:1).join(' '))}});
 
 P.command({names:['clear'],core:true,help:'clear the screen',
   man:{what:'clear the screen',syn:'clear',desc:[
@@ -68,6 +72,7 @@ P.command({names:['exit','logout'],help:'log out',
   man:{what:'log out',syn:'exit',desc:[
     'ends the session. the terminal runs its self-test and waits at login: for a new name. any name will do, within reason.']},
   run:function(a){
+    if(P.subshell())return; /* a stage of a pipeline is its own process, and only that process exits */
     if(P.inScript()){P.status(parseInt(a[0],10)||0);P.loop('exit');return} /* exit in a script ends the script */
     if(P.unsu())return; /* out of su, back to who you were */
     P.logout();

@@ -7,10 +7,11 @@
 function old(){return P.profile.year<1990} /* n, h and H came later */
 function Ed(name){
   var buf=[],dot=0,file=name||'',dirty=false,warned=false,undo=null,lastRe=null,lastErr='',verbose=false,marks={},lastRep=null,done=false;
-  function bytes(L){return L.reduce(function(n,x){return n+x.t.length+1},0)}
+  function bytes(T){return T.reduce(function(n,t){return n+t.length+1},0)} /* the size ed reports: the text and its newlines */
   function wrap(L){return L.map(function(t){return {t:t}})}
   function fail(why){var e=new Error(why);e.ed=true;throw e}
-  function save(){undo={buf:buf.slice(),texts:buf.map(function(x){return x.t}),dot:dot}}
+  function snapshot(){return {buf:buf.slice(),texts:buf.map(function(x){return x.t}),dot:dot}}
+  function save(){undo=snapshot()}
   function compile(src,flags){
     if(src===''){if(!lastRe)fail('no previous pattern');return new RegExp(lastRe.source,flags||'')}
     try{lastRe=new RegExp(P.bre(src),flags||'')}catch(e){fail('bad pattern')}
@@ -69,7 +70,7 @@ function Ed(name){
     var a=address(s,st),b=a,given=a===null?0:1;
     while(s.charAt(st.i)===','||s.charAt(st.i)===';'){
       var sep=s.charAt(st.i++);
-      if(a===null&&given===0){a=sep===','?1:dot;b=sep===','?buf.length:buf.length;given=2}
+      if(a===null&&given===0){a=sep===','?1:dot;b=buf.length;given=2}
       else a=b;
       if(sep===';')dot=a;
       var n=address(s,st);
@@ -95,14 +96,12 @@ function Ed(name){
   function readIn(then){ /* lines up to a lone dot */
     var got=[];
     (function more(){
-      var line;
-      P.queue(function(){return P.readLine('',true).then(function(l){line=l})});
-      P.queue(function(){
+      P.ask('',function(line){
         if(line===P.INT){then(got);P.typeLine('?');return}
         if(line===null||line==='.'){then(got);return}
         got.push(line);
         more();
-      });
+      },true);
     })();
   }
   function insert(at,L){
@@ -112,12 +111,12 @@ function Ed(name){
     else dot=Math.min(at,buf.length);
   }
   function loadFile(f){
-    var n=P.find(f,true);
+    var n=P.named(f);
     if(!n||n.type==='d'||n.prot)fail('cannot open input file');
     return P.text(n);
   }
   function substitute(r,rest,inGlobal){
-    var c=rest.charAt(0),src,rep,fl='',i=1;
+    var c=rest.charAt(0),src,rep,fl='';
     if(!c||/[\s]/.test(c)){
       if(!lastRep)fail('no previous substitution');
       src=lastRep.src;rep=lastRep.rep;fl=rest.trim();
@@ -136,7 +135,7 @@ function Ed(name){
         var args=arguments;
         return rep.replace(/\\(.)|&/g,function(m,e){
           if(m==='&')return all;
-          if(/[1-9]/.test(e))return args[+e]===undefined?'':args[+e];
+          if(/[1-9]/.test(e))return +e>args.length-3||args[+e]===undefined?'':args[+e];
           return e==='n'?'\n':e;
         });
       });
@@ -184,8 +183,6 @@ function Ed(name){
         need(r,dot,dot);substitute(r,rest,inGlobal);return;
       case 'g':case 'v':
         if(inGlobal)fail('cannot nest global');
-        if(!r.given){r.a=1;r.b=buf.length}
-        if(!buf.length)fail('bad address');
         need(r,1,buf.length);
         var dg=delim(rest,1,rest.charAt(0));
         var reg=compile(dg.text),todo=[];
@@ -219,8 +216,7 @@ function Ed(name){
         dot=dst+block.length;dirty=true;
         return;
       case 'j':
-        if(!r.given){r.a=dot;r.b=dot+1}
-        need(r,r.a,r.b);
+        need(r,dot,dot+1);
         save();
         buf[r.a-1].t=buf.slice(r.a-1,r.b).map(function(x){return x.t}).join('');
         buf.splice(r.a,r.b-r.a);
@@ -232,18 +228,19 @@ function Ed(name){
         return;
       case 'u':
         if(!undo)fail('nothing to undo');
-        var was={buf:buf.slice(),texts:buf.map(function(x){return x.t}),dot:dot};
+        var was=snapshot();
         buf=undo.buf;undo.texts.forEach(function(t,i){buf[i].t=t});
         dot=undo.dot;undo=was;
         return;
       case 'w':case 'W':
         var to=arg||file;
         if(!to)fail('no current filename');
+        if(r.given)need(r,1,buf.length); /* 0,$w or 3,1w: no such lines */
         L=(r.given?buf.slice(r.a-1,r.b):buf).map(function(x){return x.t});
         if(!P.writeFile(to,L,c==='W'))fail('cannot open output file');
         if(!file)file=to;
         if(!r.given)dirty=false;
-        P.typeLine(String(L.reduce(function(a,t){return a+t.length+1},0)));
+        P.typeLine(String(bytes(L)));
         return;
       case 'r':
         var from=arg||file;
@@ -251,7 +248,7 @@ function Ed(name){
         L=loadFile(from);
         save();
         insert(r.given?r.b:buf.length,L);
-        P.typeLine(String(L.reduce(function(a,t){return a+t.length+1},0)));
+        P.typeLine(String(bytes(L)));
         return;
       case 'e':case 'E':
         if(c==='e'&&dirty&&!warned){warned=true;fail('warning: file modified')}
@@ -259,7 +256,7 @@ function Ed(name){
         if(!en)fail('no current filename');
         L=loadFile(en);
         buf=wrap(L);dot=buf.length;file=en;dirty=false;marks={};undo=null;
-        P.typeLine(String(bytes(buf)));
+        P.typeLine(String(bytes(L)));
         return;
       case 'f':
         if(arg)file=arg;
@@ -288,9 +285,7 @@ function Ed(name){
     if(keep&&line.trim()!=='q'&&line.trim()!=='e')warned=false;
   }
   function loop(){
-    var line;
-    P.queue(function(){return P.readLine('',true).then(function(l){line=l})});
-    P.queue(function(){
+    P.ask('',function(line){
       if(line===P.INT){P.typeLine('?');lastErr='interrupt';loop();return}
       if(line===null){
         if(dirty&&!warned){warned=true;P.typeLine('?');lastErr='warning: file modified';loop();return}
@@ -298,11 +293,11 @@ function Ed(name){
       }
       step(line);
       if(!done)P.queue(function(){if(!done)loop()});
-    });
+    },true);
   }
   if(file){
-    var n0=P.find(file,true);
-    if(n0&&n0.type!=='d'&&!n0.prot){buf=wrap(P.text(n0));dot=buf.length;P.typeLine(String(bytes(buf)))}
+    var n0=P.named(file);
+    if(n0&&n0.type!=='d'&&!n0.prot){var T=P.text(n0);buf=wrap(T);dot=buf.length;P.typeLine(String(bytes(T)))}
     else{P.typeLine('?'+file);if(n0)lastErr='cannot open input file'}
   }
   loop();

@@ -1,21 +1,21 @@
-/* Your terminal's words: the welcome message, the about file and the letter.
+/* Your terminal's words: the welcome message, the about section and the letter.
    The example text below is CC0 (public domain); replace it with your own. See README.md
    for the full list of sections and markup. Do not type a backtick, or a dollar sign
    followed by {, anywhere between the two backticks below. */
 Phosphor.content(String.raw`
 
-# Printed after login (and kept in /etc/motd).
+# Printed after login (and kept in /etc/motd, on the Unix machines).
 == welcome ==
 welcome to phosphor-9.
 ~ type help and press return.
 
-# The about file and the about command.
+# What the about command prints.
 == about ==
 this is the demo of phosphor-9, a terminal you can put on your own website.
 it is always {year} in here.
 ~ read your mail to find out how.
 
-# The letter (the mail command). "you have mail." shows at login while this has text.
+# The letter (the mail command). The machine's "you have mail." shows when the guest logs in, while this has text.
 #
 # Write each paragraph as ONE line: the glass wraps it to fit, phones included.
 #
@@ -24,7 +24,7 @@ it is always {year} in here.
 == mail ==
 welcome to phosphor-9!
 
-this is a video terminal for your website. it is plugged into six old machines: version 7 unix, 4.3bsd, vax/vms, ms-dos, cp/m and irix. type connect to change machines. you fill them with your own words.
+this is a video terminal for your website. it is plugged into ten machines, from version 7 unix, cp/m, an apple iie and a commodore 128 to tops-20, 4.3bsd, ms-dos, vax/vms, irix and a debian server of today. type connect to change machines. you fill them with your own words.
 
 it is plain html, css and javascript: no build step, no frameworks, no server code. copy the folder to any web server, edit the files in site/, and it is yours.
 

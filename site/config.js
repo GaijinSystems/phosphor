@@ -6,9 +6,17 @@
    backticks below: either one stops the file from loading. */
 Phosphor.content(String.raw`
 
+# Words in braces that any section's text can use, filled in when the terminal starts:
+#   {owner}     the first word of name: below (letters and digits, up to 8, lower case)
+#   {email}     email: below
+#   {hostname}  hostname: if set here, else the first part of the page's address, else {owner}
+#   {site}      the address the page was served from (not set here); {hostname} from a file
+#   {year}      the connected machine's year, from machines/machines.js (not set here)
+
 # The machine behind the glass, and which others the connect command offers (see
 # machines/machines.js). Unset: the first one, and all of them. One machine: no connect.
-machine:  bsd
+# machine: random picks one of them for each browser tab (the C128 sits out the draw).
+machine:  random
 
 # Your name. The first word (up to 8 letters) is the owner's login, shown in ls -l,
 # who and on the mail. {owner} in any section's text becomes that word.
@@ -27,12 +35,17 @@ uppercase: no
 # on = keyclicks from the first tap or keypress; off = silent until "sound on".
 sound:     on
 
+# Tube effects. full: the double glow, rolling band, flicker and swaying cable. lite: the same
+# look for much less drawing. auto: lite when the browser draws without a graphics chip.
+# Visitors can switch with the effects command.
+effects:   auto
+
 # Where the source command sends people. The licence (GNU AGPL) asks that anyone using
 # a changed copy can get its source: if you change the code, point this at your copy.
 source:    https://github.com/GaijinSystems/phosphor
 
 # Switch commands off (or back on): a comma list, minus to remove. Works on the built-in
-# commands and the machine's (sudo), not on your own == command: == sections.
+# commands, the machine's (sudo) and the games (rogue), not on your own == command: == sections.
 # e.g.  commands: -ping      (ping, on the machines that have it, is the only command that
 # makes network requests)
 commands:
@@ -41,9 +54,11 @@ commands:
 # "can't open". Paths work (.trash/core); a trailing / makes a locked folder.
 protected: photo01.pic, photo02.pic, secrets, .trash/core
 
-# The coiled cable under the monitor: turns is a count, the rest are in screen pixels.
+# The coiled cable under the monitor: turns is a count (desktop: the count on a wide screen;
+# turns is used on phones and wherever desktop is unset); the rest are in screen pixels.
 # Values outside a sensible range are pulled back into it.
 cord turns:     7
+cord desktop:   13
 cord width:     18
 cord thickness: 3.2
 cord gap:       1.8

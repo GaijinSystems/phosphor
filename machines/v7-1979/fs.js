@@ -3,26 +3,17 @@
    Runs once at start, before the site's home files are added. */
 Phosphor.setup(function(P){
   'use strict';
-  var SD=P.systemDate,ST=P.st,OWNER=ST.owner;
-  function sys(p,type,o){return P.put(p,type,Object.assign({owner:'root',date:SD},o))}
+  var ST=P.st,OWNER=ST.owner,sys=P.sys;
 
   sys('/bin','d',{owner:'bin'});
   sys('/etc','d');
-  Object.keys(P.paths).sort().forEach(function(b){ /* a program file for each command that has a path */
-    var dir=P.paths[b],h=0;for(var i=0;i<b.length;i++)h=(h*31+b.charCodeAt(i))%7919;
-    sys(dir+'/'+b,'f',{owner:dir==='/bin'?'bin':'root',bin:true,size:2048+h});
-  });
+  P.programs(function(dir,h){return {owner:dir==='/bin'?'bin':'root',bin:true,size:2048+h}});
   sys('/dev','d');
   sys('/dev/console','c',{mode:'crw--w--w-',dev:[0,0]});
   sys('/dev/tty0','c',{mode:'crw--w--w-',dev:[1,0]});
   sys('/dev/null','c',{mode:'crw-rw-rw-',dev:[8,2]});
   sys('/dev/mem','c',{mode:'cr--r-----',dev:[8,0],prot:true});
   sys('/dev/kmem','c',{mode:'cr--r-----',dev:[8,1],prot:true});
-  sys('/etc/hosts','f',{body:function(){
-    var L=['127.0.0.1    localhost '+ST.hostname];
-    if(ST.site)L.push('             '+ST.site+'   (somewhere out there)');
-    return L;
-  }});
   sys('/etc/motd','f',{body:P.profile.welcome});
   sys('/etc/passwd','f',{body:function(){
     var L=['root:VwL97VCAx1Qhs:0:1:the super-user:/:','daemon:x:1:1::/:','bin:x:3:3::/bin:'];
@@ -30,7 +21,7 @@ Phosphor.setup(function(P){
     L.push(ST.user+'::9:2::/usr/'+ST.user+':');
     return L;
   }});
-  sys('/etc/rc.old','f',{body:[': old rc, kept in case the new one fails','/etc/update',': reminder: root is p1green until the auditors have gone','/etc/cron']});
+  if(P.profile.rootPassword)sys('/etc/rc.old','f',{body:[': old rc, kept in case the new one fails','/etc/update',': reminder: root is '+P.profile.rootPassword+' until the auditors have gone','/etc/cron']}); /* the root password, wherever it is set */
   sys('/usr/src/v6/ken/slp.c','f',{body:[
     '/* the old system, kept for reference. from swtch() in the sixth edition. */',
     '	/*',

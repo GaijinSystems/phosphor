@@ -32,9 +32,17 @@ P.command({names:['ps'],path:'/bin',
     var fl=a.join('').replace(/-/g,''),T=table(),R=[];
     if(!PSN)PSN=T.reduce(function(m,r){return Math.max(m,parseInt(r.p[0],10)||0)},0)+5; /* each ps gets the next id */
     T.forEach(function(r){if(r.show==='-'||fl.indexOf(r.show)>=0)R.push(r.p)});
-    R.push([String(PSN++),'0','0:00',('ps '+a.join(' ')).trim()]);
+    R.push([String(PSN++),P.profile.csh?'02':'0','0:00',('ps '+a.join(' ')).trim()]);
+    function tt(p,i){return p[1].slice(0,2).padEnd(2)+' '+(i===R.length-1?'R':p[1]==='?'?'I':'S').padEnd(4)} /* Berkeley's TT and STAT: this ps runs, the rest sleep, idle when they have no terminal */
+    if(P.profile.csh&&/u/.test(fl)){ /* the long form, and everyone's name on it */
+      P.say(['USER       PID %CPU %MEM   SZ  RSS TT STAT  TIME COMMAND'].concat(R.map(function(p,i){
+        var mine=p[1]==='02',k=parseInt(p[0],10)||1;
+        return (mine?P.st.user:'root').padEnd(8)+p[0].padStart(5)+'  0.0'+((k*7%19)/10).toFixed(1).padStart(5)+String(40+k*3%140).padStart(5)+String(20+k*5%110).padStart(5)+' '+tt(p,i)+p[2].padStart(6)+' '+p[3];
+      })));
+      return;
+    }
     if(P.profile.csh){ /* Berkeley's columns */
-      P.say(['  PID TT STAT  TIME COMMAND'].concat(R.map(function(p,i){return p[0].padStart(5)+' '+p[1].slice(0,2).padEnd(2)+' '+(i===R.length-1?'R':p[1]==='?'?'I':'S').padEnd(4)+p[2].padStart(5)+' '+p[3]})));
+      P.say(['  PID TT STAT  TIME COMMAND'].concat(R.map(function(p,i){return p[0].padStart(5)+' '+tt(p,i)+p[2].padStart(5)+' '+p[3]})));
       return;
     }
     P.say(['   PID TTY TIME CMD'].concat(R.map(function(p){return p[0].padStart(6)+' '+p[1].slice(0,2).padEnd(2)+p[2].padStart(6)+' '+p[3]})));
@@ -47,8 +55,9 @@ P.command({names:['uptime'],path:'/bin',
     var now=P.now(),SD=P.systemDate,boot=now-SD>864e5?SD:new Date(now-(3*864e5+4*36e5+12*6e4)),
         m=Math.floor((now-boot)/6e4),d=Math.floor(m/1440),hr=now.getHours();
     function la(){return (Math.random()*.06).toFixed(2)}
-    P.typeLine((hr%12||12)+':'+P.p2(now.getMinutes())+(hr<12?'am':'pm')+' up '+(d?d+' day'+(d>1?'s':'')+', ':'')+
-      Math.floor(m%1440/60)+':'+P.p2(m%60)+', 2 users, load average: '+la()+', '+la()+', '+la());
+    var ws=P.profile.perror?'  ':' ';
+    P.typeLine((P.profile.perror?' ':'')+(hr%12||12)+':'+P.p2(now.getMinutes())+(hr<12?'am':'pm')+ws+'up '+(d?d+' day'+(d>1?'s':'')+', ':'')+
+      Math.floor(m%1440/60)+':'+P.p2(m%60)+','+ws+'2 users,'+ws+'load average: '+la()+', '+la()+', '+la());
   }});
 
 P.command({names:['hostname'],path:'/bin',
@@ -117,11 +126,27 @@ P.command({names:['ping'],path:'/etc',
         Math.round(o.reduce(function(s,x){return s+x},0)/o.length)+'/'+Math.round(Math.max.apply(null,o))},'',null,{hang:4});
   }});
 
-/* fill: the terminal's own switch, on every machine. It is not listed in help: you just have to know. */
-P.command({names:['fill'],terminal:true,noHelpFlag:true,
-  man:{what:'fill the window with the glass',syn:'fill',desc:[
-    'puts the monitor away and lets the glass fill the window. fill again brings the monitor back. this browser remembers which you chose.']},
+/* fill: the terminal's own switch, on every machine. */
+P.command({names:['fill'],terminal:true,noHelpFlag:true,help:'bigger screen, on or off',
+  man:{what:'make the monitor as big as the window',syn:'fill',desc:[
+    'puts the cable away and makes the monitor as big as the window allows. fill again puts it back. this browser remembers which you chose.']},
   run:function(){P.fillGlass(!P.fillGlass())}});
+
+/* effects: the terminal's other switch, on every machine. */
+P.command({names:['effects'],terminal:true,help:'tube effects: auto, full or lite',
+  man:{what:'tube effects, full or lite',syn:'effects [ auto | full | lite ]',desc:[
+    'full draws the whole tube: a double glow round the text, the bright band rolling down the glass, the flicker and the swaying cable. lite does less work and looks much the same: one small glow, the band moving in small steps, the flicker and the cable held still. auto, the usual, picks lite when the browser draws without a graphics chip, or draws the warm-up slowly.',
+    '',
+    'with no argument, says which is in use. this browser remembers which you chose.']},
+  run:function(a){
+    var m=(a[0]||'').toLowerCase(),e;
+    if(/^(auto|full|lite)$/.test(m)){P.effects(m);P.typeLine('effects '+m+'.');return}
+    e=P.effects();
+    P.say([
+      'effects '+e.mode+(e.mode==='auto'?': '+(e.lite?'lite ('+e.why+')':'full'):''),
+      ['usage: effects auto|full|lite','dim']
+    ]);
+  }});
 
 /* connect: the terminal stays, the machine changes. A fresh page load is a true cold start. */
 P.command({names:['connect'],terminal:true,help:'plug into another machine',
@@ -150,22 +175,21 @@ P.command({names:['su'],path:'/bin',
     'asks for the root password, then makes you the super-user, until you exit.'],bugs:[
     'you do not know the root password. yet.']},
   run:function(a){
-    var word=P.profile.rootPassword,line;
+    var word=P.profile.rootPassword;
     if(a[0]&&a[0]!=='root'&&a[0]!==P.st.owner&&a[0]!==P.st.user){P.typeLine('Unknown id: '+a[0]);return}
     if(P.st.user==='root')return;
-    P.queue(function(){return P.readLine('Password:',false,true).then(function(l){line=l})});
-    P.queue(function(){
-      if(word&&line===word){P.su();return}
+    P.ask('Password:',function(line){
+      if(word&&line!=null&&line!==P.INT&&P.fold(line)===P.fold(word)){P.su();return} /* case counts where the machine's does */
       P.pause(900);
       P.typeLine('Sorry','err');
-    });
+    },false,true);
   }});
 
 /* the ways to stop a machine: Berkeley had halt; before that, you synced and threw the switch */
 P.command({names:['halt'],path:'/etc',enabled:function(p){return p.csh},
-  man:{what:'stopping the processor',syn:'halt [ -n ] [ -q ] [ -y ]',desc:['writes out what is in memory and stops the processor. only the super-user may do it.']},
+  man:{what:'stop the processor',syn:'halt [ -n ] [ -q ] [ -y ]',desc:['writes out what is in memory and stops the processor. only the super-user may do it.']},
   run:function(){
-    if(P.st.user!=='root'){P.typeLine('reboot: Not owner','err');return}
+    if(P.st.user!=='root'){P.typeLine("reboot: can't idle init",'err');return} /* 4.3BSD's halt.c: its first kill(1, SIGTSTP) is refused */
     P.powerOff(['syncing disks... done','halting']);
   }});
 var syncs=0;
@@ -177,21 +201,30 @@ P.command({names:['sync'],path:'/bin',enabled:function(p){return !p.csh&&p.year<
   }});
 
 P.command({names:['rm'],path:'/bin',
-  man:{what:'remove files',syn:'rm [ -fri ] file ...',desc:[
+  man:{what:'remove files',syn:'rm [ -r ] file ...',desc:[
     'removes each file named. -r also removes folders and everything in them. you can only remove what is in your own home folder or in /tmp, and only until the terminal is switched off: a reload puts it all back.']},
   run:function(a){
     var f=a.filter(function(x){return x.charAt(0)!=='-'}),rec=a.some(function(x){return /^-.*r/.test(x)}),denied=false;
-    if(!f.length)return;
+    if(!f.length){if(P.profile.perror)P.typeLine('usage: rm [-rif] file ...','err');return}
+    function lockedIn(n,path,seen,up){ /* the first locked thing at or under n, by name. A link's lock is its target's, not this name's */
+      if(n.prot&&n.parent===up&&n.name===path.split('/').pop())return path;
+      if(n.type!=='d'||!n.kids||seen.indexOf(n)>=0)return null;
+      seen.push(n);
+      var names=Object.keys(n.kids);
+      for(var i=0;i<names.length;i++){var r=lockedIn(n.kids[names[i]],path+'/'+names[i],seen,n);if(r)return r}
+      return null;
+    }
     f.forEach(function(x){
-      var n=P.find(x,true),at=n&&P.pathOf(n),cwd=P.st.cwd;
+      var n=P.find(x,true),at=n&&P.pathOf(n);
       if(!n){P.typeLine('rm: '+x+' nonexistent','err');return}
       if(n.type==='d'&&!rec){P.typeLine('rm: '+x+' directory','err');return}
-      if(n===P.root||n.prot||!P.canWrite(at)||cwd===at||cwd.indexOf(at+'/')===0){
-        denied=denied||!P.canWrite(at);
+      var abs=P.norm(x),up=P.find(P.dirOf(abs),true),locked=lockedIn(n,abs,[],up);
+      if(n===P.root||locked||!P.canWrite(abs)||P.inUse(at)){
+        denied=denied||!P.canWrite(locked||abs);
         P.typeLine('rm: '+x+' not removed','err');
         return;
       }
-      delete n.parent.kids[n.name];
+      delete up.kids[abs.split('/').pop()]; /* by the name given: a link has its own */
     });
     if(denied)P.typeLine('nice try.','dim');
   }});

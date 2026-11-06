@@ -5,9 +5,8 @@
 'use strict';
 var GAMES=['adventure','backgammon','boggle','canfield','chess','cribbage','fish','fortune','hangman','mille','monop','rogue','snake','trek','wump','zork'];
 P.command({names:['wargames'],path:'/usr/games',noHelpFlag:true,run:function(){
-  var x;
-  P.queue(function(){return P.readLine('Would you like to play a game? ').then(function(l){x=(l||'').trim()})});
-  P.queue(function(){
+  P.ask('Would you like to play a game? ',function(l){
+    var x=(l||'').trim();
     if(GAMES.indexOf(x)<0){P.typeLine('Funny, the only way to win is not to play at all');return}
     if(P.cmds[x])P.cmds[x]([],x,[x]);
     else P.typeLine('/usr/games/'+x+': not found','err');

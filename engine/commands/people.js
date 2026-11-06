@@ -4,13 +4,13 @@
 'use strict';
 
 P.command({names:['about'],terminal:true,help:'the owner of this machine',
-  enabled:function(p){return p.about.length>0}, /* no == about == section: no about command, no about file */
+  enabled:function(p){return p.about.length>0}, /* no == about == section: no about command */
   man:{what:'who owns this machine',syn:'about',desc:[
-    'prints the about file. same as cat about.']},
+    'prints what the owner of this machine wrote about it.']},
   run:function(){P.say(P.profile.about)}});
 
 /* the letter is the whole == mail == section; the engine only adds the From line */
-P.command({names:['mail'],core:true,terminal:true,help:'read your mail',path:'/bin',
+P.command({names:['mail'],core:true,terminal:true,help:'read your mail',
   man:{what:'read your mail',syn:'mail',desc:[
     'prints your mail. there is usually one letter.'],bugs:[
     'there is no modem, so you cannot answer it from here.']},
@@ -27,8 +27,8 @@ P.command({names:['who'],path:'/bin',
   man:{what:'who is on the system',syn:'who [ am i ]',desc:[
     'lists everyone logged in: name, terminal, and the time they arrived. who am i lists only you.']},
   run:function(a){
-    var me=P.st.user.padEnd(9)+'tty0     '+P.short(P.st.login);
-    if(a[0]==='am'&&a[1]==='i'){P.typeLine(me);return}
+    var me=P.st.user.padEnd(9)+(P.profile.csh?'tty02    ':'tty0     ')+P.short(P.st.login);
+    if(a[0]==='am'&&a[1]==='i'){P.typeLine((P.profile.perror?P.st.hostname+'!':'')+me);return}
     P.say([P.st.owner.slice(0,8).padEnd(9)+'console  '+P.short(P.fileDate),me]);
   }});
 

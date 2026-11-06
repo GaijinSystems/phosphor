@@ -3,29 +3,16 @@
 (function(P){
 'use strict';
 
-function cmd(names,help,run){
-  var d={names:names,noHelpFlag:true,run:run};
-  if(help)d.help=help;
-  P.command(d);
-}
+var cmd=P.fcb.cmd,split=P.fcb.split,short=P.fcb.name,matcher=P.fcb.matcher;
 var FREE=21331968;
 function dosPath(abs){return 'C:'+abs.replace(/\//g,'\\').toUpperCase()}
 function args(words){return words.slice(1)}
 function switches(a){return a.filter(function(x){return x.charAt(0)==='/'}).join('').toLowerCase()}
 function names(a){return a.filter(function(x){return x.charAt(0)!=='/'})}
 function shown(k,n){return !n.hidden&&k.charAt(0)!=='.'}
-function split(k){var i=k.lastIndexOf('.');return i>0?[k.slice(0,i),k.slice(i+1)]:[k,'']}
-function short(k){var s=split(k);return s[0].slice(0,8).toUpperCase().padEnd(8)+' '+s[1].slice(0,3).toUpperCase().padEnd(3)}
-function matcher(pat){ /* *.* and ?, the way COMMAND.COM reads them: name and extension apart */
-  var p=split(pat.toLowerCase()),one=function(x,y){
-    var t='^'+x.replace(/[.+^${}()|\\\[\]]/g,'\\$&').replace(/\*.*$/,'.*').replace(/\?/g,'.?')+'$';
-    return new RegExp(t).test(y);
-  };
-  return function(k){var s=split(k);return one(p[0],s[0])&&one(p[1],s[1])};
-}
-function p2(n){return String(n).padStart(2,'0')}
-function stampD(d){return String(d.getMonth()+1).padStart(2)+'-'+p2(d.getDate())+'-'+p2(d.getFullYear()%100)}
-function stampT(d){var h=d.getHours();return String(h%12||12).padStart(2)+':'+p2(d.getMinutes())+(h<12?'a':'p')}
+function rest(raw){return raw.replace(/^\s*\S+\s?/,'')} /* the line after the command word */
+function stampD(d){return String(d.getMonth()+1).padStart(2)+'-'+P.p2(d.getDate())+'-'+P.p2(d.getFullYear()%100)}
+function stampT(d){var h=d.getHours();return String(h%12||12).padStart(2)+':'+P.p2(d.getMinutes())+(h<12?'a':'p')}
 var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var echoOn=true,promptStr='$P$G';
 
@@ -47,7 +34,7 @@ function notReady(drive,then){
     P.typeLine('');
     P.typeLine('Not ready error reading drive '+drive);
     var c;
-    P.queue(function(){return P.readKey('Abort, Retry, Fail?').then(function(k){c=k.toLowerCase()})});
+    P.queue(function(){return P.readKey('Abort, Retry, Fail?',true).then(function(k){c=k.toLowerCase()})});
     P.queue(function(){
       if(c==='f'){P.typeLine('');P.typeLine('Current drive is no longer valid')}
       else if(c==='a'){if(then)then()}
@@ -56,39 +43,51 @@ function notReady(drive,then){
   };
   again();
 }
-function isFloppy(s){return /^[abAB]:/.test(s||'')}
+function floppy(s){ /* A: or B: named: the drive is asked, and the command goes no further */
+  if(!/^[abAB]:/.test(s||''))return false;
+  notReady(s.charAt(0).toUpperCase());
+  return true;
+}
 function resolve(x){ /* what a DIR-style name means: a folder, a file or a pattern in a folder */
   var abs=P.norm(x||'.'),n=/[*?]/.test(abs)?null:P.find(abs,true);
   if(n&&n.type==='d')return {dir:n,pat:'*.*',at:abs};
-  var i=abs.lastIndexOf('/'),dirAt=abs.slice(0,i)||'/',d=P.find(dirAt,true);
+  var i=abs.lastIndexOf('/'),dirAt=P.dirOf(abs),d=P.find(dirAt,true);
   return {dir:d&&d.type==='d'?d:null,pat:abs.slice(i+1),at:dirAt};
 }
 function entries(R){
   var m=matcher(R.pat);
   return Object.keys(R.dir.kids).sort().filter(function(k){return shown(k,R.dir.kids[k])&&m(k)});
 }
+function lookup(x){ /* a file by name, or by the eight and three a longer name is shown as */
+  var n=P.find(x,true);if(n)return n;
+  var abs=P.norm(x),d=P.find(P.dirOf(abs),true),c=P.fcb.cut(abs.slice(abs.lastIndexOf('/')+1));
+  if(!d||d.type!=='d'||/[*?]/.test(c))return null;
+  var k=Object.keys(d.kids).filter(function(k){return P.fcb.cut(k)===c})[0];
+  return k?d.kids[k]:null;
+}
+function files(R){return entries(R).filter(function(k){return R.dir.kids[k].type!=='d'})}
+function none(){P.typeLine('        0 File(s) copied')}
 
 cmd(['dir'],'list files',function(a,raw,w){
   var sw=switches(args(w)),N=names(args(w));
-  if(isFloppy(N[0])){notReady(N[0].charAt(0).toUpperCase());return}
+  if(floppy(N[0]))return;
   var R=resolve(N[0]);
   if(!R.dir){P.typeLine('Path not found');return}
-  var E=entries(R),L=['',' Volume in drive C is FROBOZZ',' Directory of  '+dosPath(R.at),''],size=0;
+  if(R.pat.indexOf('.')<0)R.pat+='.*'; /* DIR README is DIR README.* */
+  var E=entries(R),L=['',' Volume in drive C is FROBOZZ',' Directory of  '+dosPath(R.at),''];
   if(R.at!=='/')E=['.','..'].concat(E);
   if(!E.length){L.push('File not found');P.say(L);return}
   var row=[];
   E.forEach(function(k){
     var n=k==='.'||k==='..'?R.dir:R.dir.kids[k],sz=n.type==='d'?0:P.fsize(n);
-    size+=sz;
     var nm=k==='.'||k==='..'?k.padEnd(12):short(k);
     if(/w/.test(sw)){
       row.push(nm.padEnd(15));
-      if(row.length===4){L.push(row.join(''));row=[]}
       return;
     }
     L.push(nm+(n.type==='d'?' <DIR>     ':String(sz).padStart(9)+'  ')+stampD(n.date).padStart(8)+'  '+stampT(n.date));
   });
-  if(row.length)L.push(row.join(''));
+  P.chunk(row,4).forEach(function(r){L.push(r.join(''))});
   L.push(String(E.length).padStart(9)+' File(s)'+String(FREE).padStart(10)+' bytes free');
   P.say(L);
 });
@@ -96,10 +95,10 @@ cmd(['type'],'print a file',function(a,raw,w){
   var N=names(args(w));
   if(!N.length){P.typeLine('Required parameter missing');return}
   if(/[*?]/.test(N[0])){P.typeLine('Invalid filename or file not found');return}
-  var n=P.find(N[0],true);
+  var n=lookup(N[0]);
   if(!n||n.type==='d'){P.typeLine('File not found');return}
   if(n.prot){P.typeLine('Access denied');return}
-  if(n.bin){P.typeLine('MZ\u00901\u0001\u0002@\u00ff\u00ff\u00b8!L\u00cd!This program cannot be run on the glass.');return}
+  if(n.bin){P.typeLine('MZ\u00901\u263a\u263b@\u00ff\u00ff\u00b8!L\u00cd!This program cannot be run on the glass.');return}
   P.say(P.text(n));
 });
 cmd(['cd','chdir'],'change directory',function(a,raw,w){
@@ -126,7 +125,7 @@ cmd(['rd','rmdir'],null,function(a,raw,w){
 function del(pat){
   var R=resolve(pat);
   if(!R.dir){P.typeLine('Path not found');return}
-  var E=entries(R).filter(function(k){return R.dir.kids[k].type!=='d'});
+  var E=files(R);
   if(!E.length){P.typeLine('File not found');return}
   E.forEach(function(k){
     var n=R.dir.kids[k];
@@ -139,9 +138,7 @@ cmd(['del','erase'],null,function(a,raw,w){
   if(!N.length){P.typeLine('Required parameter missing');return}
   var R=resolve(N[0]);
   if(R.pat==='*.*'){
-    var line;
-    P.queue(function(){return P.readLine('Are you sure (Y/N)? ').then(function(l){line=l})});
-    P.queue(function(){if(line&&/^y/i.test(line.trim()))del(N[0])});
+    P.ask('Are you sure (Y/N)? ',function(line){if(line&&/^y/i.test(line.trim()))del(N[0])});
     return;
   }
   del(N[0]);
@@ -149,21 +146,21 @@ cmd(['del','erase'],null,function(a,raw,w){
 cmd(['ren','rename'],null,function(a,raw,w){
   var N=names(args(w));
   if(N.length<2){P.typeLine('Required parameter missing');return}
-  var n=P.find(N[0],true),to=N[1].toLowerCase();
+  var n=lookup(N[0]),to=P.fcb.cut(N[1].toLowerCase());
   if(!n||n.type==='d'){P.typeLine('File not found');return}
-  if(n.bin||n.prot||n.parent.kids[to]||/[\\\/:]/.test(to)){P.typeLine('Duplicate file name or File not found');return}
+  if(n.bin||n.prot||n.parent.kids[to]||/^\.|[\\\/:*?]/.test(N[1])){P.typeLine('Duplicate file name or File not found');return} /* no wildcards, and no name that is all extension, like .. */
   delete n.parent.kids[n.name];
   n.name=to;n.parent.kids[to]=n;
 });
 cmd(['copy'],null,function(a,raw,w){
   var N=names(args(w));
   if(!N.length){P.typeLine('Required parameter missing');return}
-  if(isFloppy(N[1])){notReady(N[1].charAt(0).toUpperCase());return}
+  if(floppy(N[1]))return;
   var from=N[0].toLowerCase(),to=N[1]||split(from.replace(/^.*[\\\/]/,'')).join('.').replace(/\.$/,'');
-  if(from===to.toLowerCase()){P.typeLine('File cannot be copied onto itself');P.typeLine('        0 File(s) copied');return}
-  function write(L,count){
-    var d=P.find(to,true),at=d&&d.type==='d'?P.norm(to)+'/'+from.replace(/^.*[\\\/]/,''):to;
-    if(!P.writeFile(at,L,false)){P.typeLine('Access denied');P.typeLine('        0 File(s) copied');return}
+  if(from===to.toLowerCase()){P.typeLine('File cannot be copied onto itself');none();return}
+  function write(L){
+    var d=P.find(to,true),at=(d&&d.type==='d'?P.norm(to)+'/'+from.replace(/^.*[\\\/]/,''):to).replace(/[^\\\/:]*$/,P.fcb.cut); /* the new name, cut to eight and three */
+    if(!P.writeFile(at,L,false)){P.typeLine('Access denied');none();return}
     P.typeLine('        1 File(s) copied');
   }
   if(from==='con'){ /* copy con: typed until ctrl-z */
@@ -174,8 +171,8 @@ cmd(['copy'],null,function(a,raw,w){
     P.queue(function(){write(got)});
     return;
   }
-  var n=P.find(from,true);
-  if(!n||n.type==='d'){P.typeLine('File not found - '+N[0].toUpperCase());P.typeLine('        0 File(s) copied');return}
+  var n=lookup(from);
+  if(!n||n.type==='d'){P.typeLine('File not found - '+N[0].toUpperCase());none();return}
   if(n.prot){P.typeLine('Access denied');return}
   write(P.text(n));
 });
@@ -183,39 +180,37 @@ cmd(['cls'],'clear the screen',function(){P.clear()});
 cmd(['ver'],null,function(){P.say(['','Microsoft MS-DOS Version 3.30',''])});
 cmd(['vol'],null,function(){P.say(['',' Volume in drive C is FROBOZZ',''])});
 cmd(['date'],null,function(){
-  var n=P.now(),line;
-  P.typeLine('Current date is '+DAYS[n.getDay()]+' '+p2(n.getMonth()+1)+'-'+p2(n.getDate())+'-'+n.getFullYear());
+  var n=P.now();
+  P.typeLine('Current date is '+DAYS[n.getDay()]+' '+P.p2(n.getMonth()+1)+'-'+P.p2(n.getDate())+'-'+n.getFullYear());
   (function ask(){
-    P.queue(function(){return P.readLine('Enter new date (mm-dd-yy): ').then(function(l){line=l})});
-    P.queue(function(){if(line&&!/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(line.trim())){P.typeLine('Invalid date');ask()}});
+    P.ask('Enter new date (mm-dd-yy): ',function(line){if(line&&!/^\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}$/.test(line.trim())){P.typeLine('Invalid date');ask()}});
   })();
 });
 cmd(['time'],null,function(){
-  var n=P.now(),line;
-  P.typeLine('Current time is '+String(n.getHours()).padStart(2)+':'+p2(n.getMinutes())+':'+p2(n.getSeconds())+'.00');
+  var n=P.now();
+  P.typeLine('Current time is '+String(n.getHours()).padStart(2)+':'+P.p2(n.getMinutes())+':'+P.p2(n.getSeconds())+'.00');
   (function ask(){
-    P.queue(function(){return P.readLine('Enter new time: ').then(function(l){line=l})});
-    P.queue(function(){if(line&&!/^\d{1,2}(:\d{1,2}){0,2}(\.\d+)?$/.test(line.trim())){P.typeLine('Invalid time');ask()}});
+    P.ask('Enter new time: ',function(line){if(line&&!/^\d{1,2}(:\d{1,2}){0,2}(\.\d+)?$/.test(line.trim())){P.typeLine('Invalid time');ask()}});
   })();
 });
 cmd(['echo'],null,function(a,raw,w){
-  var t=raw.replace(/^\s*\S+\s?/,'');
+  var t=rest(raw);
   if(!t.trim()){P.typeLine('ECHO is '+(echoOn?'on':'off'));return}
   if(/^on$/i.test(t.trim())){echoOn=true;return}
   if(/^off$/i.test(t.trim())){echoOn=false;return}
   P.typeLine(t);
 });
 cmd(['set'],null,function(a,raw){
-  var t=raw.replace(/^\s*\S+\s?/,''),m=t.match(/^([^=]+)=(.*)$/);
+  var m=rest(raw).match(/^([^=]+)=(.*)$/);
   if(m){var k=m[1].trim().toUpperCase();if(m[2])P.env[k]=m[2];else delete P.env[k];return}
-  P.say(Object.keys(P.env).sort().map(function(k){return k+'='+P.env[k]}));
+  P.say(P.envRows());
 });
 cmd(['path'],null,function(a,raw){
-  var t=raw.replace(/^\s*\S+\s?/,'').trim();
+  var t=rest(raw).trim();
   if(t){P.env.PATH=t.toUpperCase();return}
   P.typeLine('PATH='+(P.env.PATH||''));
 });
-cmd(['prompt'],null,function(a,raw){promptStr=raw.replace(/^\s*\S+\s?/,'').trim()||'$N$G'});
+cmd(['prompt'],null,function(a,raw){promptStr=rest(raw).trim()||'$N$G'});
 cmd(['pause'],null,function(){
   P.queue(function(){return P.readKey('Strike a key when ready . . . ')});
 });
@@ -230,11 +225,10 @@ cmd(['ctty'],null,function(){P.typeLine('Invalid device')});
 
 /* the programs in C:\DOS */
 cmd(['chkdsk'],null,function(a,raw,w){
-  var N=names(args(w));
-  if(isFloppy(N[0])){notReady(N[0].charAt(0).toUpperCase());return}
+  if(floppy(names(args(w))[0]))return;
   P.say(['','Volume FROBOZZ','',
     '  21309440 bytes total disk space','     53248 bytes in 3 hidden files','     20480 bytes in 5 directories',
-    '    192512 bytes in 24 user files',FREE.toString().padStart(10)+' bytes available on disk'.padStart(0),'',
+    '    192512 bytes in 24 user files',FREE.toString().padStart(10)+' bytes available on disk','',
     '    655360 bytes total memory','    590656 bytes free','']);
 });
 cmd(['format'],null,function(a,raw,w){
@@ -256,9 +250,9 @@ cmd(['format'],null,function(a,raw,w){
   P.typeLine('Invalid drive specification');
 });
 cmd(['find'],null,function(a,raw,w){
-  var m=raw.match(/"([^"]*)"/),rest=raw.replace(/^\s*\S+\s*/,'').replace(/"[^"]*"/,'').trim().split(/\s+/).filter(Boolean);
+  var m=raw.match(/"([^"]*)"/),W=raw.replace(/^\s*\S+\s*/,'').replace(/"[^"]*"/,'').trim().split(/\s+/).filter(Boolean);
   if(!m){P.typeLine('FIND: Invalid number of parameters');return}
-  var sw=rest.filter(function(x){return x.charAt(0)==='/'}).join('').toLowerCase(),F=rest.filter(function(x){return x.charAt(0)!=='/'});
+  var sw=switches(W),F=names(W);
   function run(L,head){
     var hits=[];
     L.forEach(function(l,i){if((l.indexOf(m[1])>=0)!==/v/.test(sw))hits.push((/n/.test(sw)?'['+(i+1)+']':'')+l)});
@@ -269,6 +263,7 @@ cmd(['find'],null,function(a,raw,w){
     F.forEach(function(x){
       var n=P.find(x,true);
       if(!n||n.type==='d'){P.typeLine('FIND: File not found '+x);return}
+      if(n.prot){P.typeLine('Access denied - '+x.toUpperCase());return}
       run(P.text(n),x);
     });
     return;
@@ -303,14 +298,14 @@ cmd(['label'],null,function(){P.say(['Volume in drive C is FROBOZZ','','Volume l
 cmd(['attrib'],null,function(a,raw,w){
   var N=names(args(w)),R=resolve(N[0]||'*.*');
   if(!R.dir){P.typeLine('Path not found');return}
-  var E=entries(R).filter(function(k){return R.dir.kids[k].type!=='d'});
+  var E=files(R);
   if(!E.length){P.typeLine('File not found');return}
   P.say(E.map(function(k){return '  A  '+dosPath((R.at==='/'?'':R.at)+'/'+k)}));
 });
 cmd(['edlin'],null,function(a,raw,w){
   var name=names(args(w))[0];
   if(!name){P.typeLine('File name must be specified');return}
-  var n=P.find(name,true),B=[],at=1,line,done=false;
+  var n=P.find(name,true),B=[],at=1,done=false;
   if(n&&n.type==='d'){P.typeLine('Invalid drive or file name');return}
   if(n&&n.prot){P.typeLine('Access denied');return}
   if(n){B=P.text(n);P.typeLine('End of input file')}else P.typeLine('New file');
@@ -320,15 +315,13 @@ cmd(['edlin'],null,function(a,raw,w){
     P.say(o);
   }
   function insert(pos){
-    var l;
-    P.queue(function(){return P.readLine(String(pos).padStart(8)+':*').then(function(v){l=v})});
-    P.queue(function(){
+    P.ask(String(pos).padStart(8)+':*',function(l){
       if(l===null){at=pos;loop();return}
       B.splice(pos-1,0,l);insert(pos+1);
     });
   }
   function exec(s){
-    var m=s.trim().match(/^(\d+|\.|#)?(?:,(\d+|\.|#)?)?\s*([a-zA-Z])?(.*)$/),v=function(x,d){return !x?d:x==='.'?at:x==='#'?B.length+1:+x};
+    var m=s.trim().match(/^(\d+|\.|#)?(?:,(\d+|\.|#)?)?\s*([a-zA-Z])?(.*)$/),v=function(x,d){return !x?d:x==='.'?at:x==='#'?B.length+1:Math.max(1,+x)};
     if(!m){P.typeLine('Entry error');return loop()}
     var c=(m[3]||'').toUpperCase(),a1=v(m[1],at),b1=v(m[2],a1);
     if(c==='I')return insert(Math.min(a1,B.length+1));
@@ -336,16 +329,12 @@ cmd(['edlin'],null,function(a,raw,w){
     if(c==='D'){B.splice(a1-1,b1-a1+1);at=Math.min(a1,B.length+1);return loop()}
     if(c==='E'){if(!P.writeFile(name,B,false))P.typeLine('Access denied');return}
     if(c==='Q'){
-      var y;
-      P.queue(function(){return P.readLine('Abort edit (Y/N)? ').then(function(l){y=l})});
-      P.queue(function(){if(!y||!/^y/i.test(y))loop()});
+      P.ask('Abort edit (Y/N)? ',function(y){if(!y||!/^y/i.test(y))loop()});
       return;
     }
     if(!c&&m[1]&&a1>=1&&a1<=B.length){
       at=a1;list(a1,a1);
-      var e;
-      P.queue(function(){return P.readLine(String(a1).padStart(8)+':*').then(function(l){e=l})});
-      P.queue(function(){if(e)B[a1-1]=e;loop()});
+      P.ask(String(a1).padStart(8)+':*',function(e){if(e)B[a1-1]=e;loop()});
       return;
     }
     if(!c&&!m[1]&&!s.trim())return loop();
@@ -353,8 +342,7 @@ cmd(['edlin'],null,function(a,raw,w){
     loop();
   }
   function loop(){
-    P.queue(function(){return P.readLine('*').then(function(l){line=l})});
-    P.queue(function(){if(line===null)return loop();exec(line)});
+    P.ask('*',function(line){if(line===null)return loop();exec(line)});
   }
   loop();
 });
@@ -368,22 +356,22 @@ P.fallback=function(word,raw){
     P.typeLine('Invalid drive specification');
     return true;
   }
-  var z=/^(?:(?:c:)?\\zork\\|)(zork[123])(?:\.com)?$/.exec(w); /* the program is here; its story disk is not */
-  if(z&&(z[0]!==z[1]&&z[0]!==z[1]+'.com'||P.st.cwd==='/zork')&&P.find('/zork/'+z[1]+'.com')){notReady('A');return true}
-  var base=w.replace(/\.(bat|com|exe)$/,''),n;
-  if(/[\\\/]/.test(w)||/\.bat$/.test(w)||P.find(base+'.bat',true)){
-    n=P.find(base+'.bat',true);
-    if(n&&n.body){
-      var L=P.text(n);
-      L.forEach(function(l){
-        var quiet=l.charAt(0)==='@',t=quiet?l.slice(1):l;
-        P.queue(function(){
-          if(!quiet&&echoOn)P.typeLine(currentPrompt()+t);
-          P.runScript([t]);
-        });
+  var z=/^(?:.*[\\\/])?(zork[12])(?:\.com)?$/.exec(w),zn=z&&P.find(w.replace(/\.com$/,'')+'.com',true); /* in C:\ZORK, or by its path */
+  if(zn&&P.pathOf(zn)==='/zork/'+z[1]+'.com'){
+    if(P.find('/zork/'+z[1]+'.dat',true))P.zork.play(z[1]);
+    else P.typeLine('File not found');
+    return true;
+  }
+  var n=P.find(w.replace(/\.(bat|com|exe)$/,'')+'.bat',true);
+  if(n&&n.body){
+    P.text(n).forEach(function(l){
+      var quiet=l.charAt(0)==='@',t=quiet?l.slice(1):l;
+      P.queue(function(){
+        if(!quiet&&echoOn)P.typeLine(currentPrompt()+t);
+        P.runScript([t]);
       });
-      return true;
-    }
+    });
+    return true;
   }
   return false;
 };

@@ -16,6 +16,7 @@
 @supports (height:100dvh){:root{--sw:min(calc(80vw / 1.079),calc(var(--app-h,100dvh) * .8 / .842))}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#040504}
+html{height:var(--app-h,100%)} /* nothing taller than what shows, so a phone has nothing to scroll the monitor out of view with */
 body{
   height:100vh;height:100dvh;height:var(--app-h,100dvh); /* --app-h = visible height, shrinks when a soft keyboard opens */
   background:radial-gradient(ellipse 70% 55% at 50% 46%,#09110b 0%,#050705 55%,#030403 100%);
@@ -23,7 +24,8 @@ body{
 }
 #stage{
   position:relative;width:100%;height:100%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start; /* centred across, at the top */
+  padding-top:var(--top,16px);
 }
 
 /* ---------- monitor ---------- */
@@ -101,7 +103,15 @@ body{
   box-shadow:0 0 6px rgba(var(--phos-rgb),.9),0 0 22px rgba(var(--phos-rgb),.35);
 }
 #full .line{white-space:pre;word-break:normal;overflow:hidden}
-#full{min-height:100%}
+#full{min-height:100%} /* touch-action is set as it draws: a sideways drag is the engine's when it pans a view wider than the glass */
+.edge{ /* where that view cuts content off: a faint mark at the side, in the padding beside the text */
+  position:absolute;z-index:5;top:50%;transform:translateY(-50%);pointer-events:none;
+  font-size:calc(var(--fs)*1.5);line-height:1;color:var(--phos);opacity:.4;
+  text-shadow:0 0 6px rgba(var(--phos-rgb),.6);
+}
+.edge.l{left:calc(var(--fs)*.45)}
+.edge.r{right:calc(var(--fs)*.45)}
+.edge[hidden]{display:none}
 .fcur{background:var(--phos);color:#020603;text-shadow:none}
 #term.idle .cursor{animation:blink 1.06s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
@@ -127,14 +137,14 @@ body{
 
 /* ---------- cable ---------- */
 /* desktop: runs from just under the bezel to the bottom of the window, whatever the gap */
-#cablewrap{position:absolute;z-index:1;left:0;right:0;bottom:0;top:calc(50% + var(--bh) / 2 - 4px)}
+#cablewrap{position:absolute;z-index:1;left:0;right:0;bottom:0;top:calc(var(--top,16px) + var(--bh) - 4px)}
 #cable{position:absolute;inset:0;width:100%;height:100%;overflow:visible;display:block}
 #sway{transform-box:view-box;transform-origin:50% 0;animation:sway 7.3s ease-in-out infinite}
 @keyframes sway{0%,100%{transform:skewX(calc(var(--sa,.5deg) * -1))}50%{transform:skewX(var(--sa,.5deg))}}
 
 /* ---------- hidden input (soft keyboard bridge) ---------- */
 #kb{
-  position:fixed;left:0;bottom:0;width:1px;height:16px;
+  position:fixed;left:0;top:0;width:1px;height:16px; /* at the top: a phone scrolls a focused field into view, and up here it already is */
   font-size:16px;opacity:0;border:0;padding:0;margin:0;outline:none;
   background:transparent;color:transparent;caret-color:transparent;
 }
@@ -144,6 +154,7 @@ body{
 
 /* ---------- keys a phone does not have (see engine/phosphor.js) ---------- */
 #softkeys{position:absolute;z-index:6;right:6px;bottom:6px;display:flex;gap:4px}
+@media (pointer:coarse){#full{padding-bottom:max(calc(var(--fs)*1.9),42px)}} /* a full-screen program's last row stays above them */
 #softkeys button{
   font:13px/1 "VT323","Courier New",Courier,monospace;min-width:34px;min-height:30px;padding:0 6px;
   color:var(--phos);background:rgba(var(--phos-rgb),.08);border:1px solid rgba(var(--phos-rgb),.35);border-radius:3px;
@@ -161,19 +172,47 @@ body{
   #bezel{padding:12px 12px 22px;border-radius:16px 16px 22px 22px / 14px 14px 28px 28px}
   #bezel::after{bottom:-12px;width:28px;height:15px}
   .badge{display:none}
+  /* html.short (set by the engine): the keyboard leaves too little height for the glass and its cable,
+     so the cable is put away and the glass takes the room */
+  html.short{--sh:max(60px,calc(var(--app-h,100dvh) - 50px - env(safe-area-inset-top,0px)))}
+  html.short #bezel::after,html.short #cablewrap{display:none}
 }
-/* ---------- the fill command: just the glass, as wide as it can be at 4:3, with dark bars at the
-   sides when the window is wider than that ---------- */
-html.fill{--sw:min(100vw,calc(var(--app-h,100dvh) / .75));--sh:calc(var(--sw) * .75)}
-html.fill #bezel{padding:0;background:none;box-shadow:none;border-radius:0}
-html.fill #bezel::after,html.fill .badge,html.fill #cablewrap{display:none}
-html.fill #screen{border-radius:0}
-html.fill body{background:#000}
+/* ---------- the fill command: the whole monitor, bezel and all, as big as the window allows (the
+   glass stays 4:3), with the cable put away. The bezel is 1.079 x 0.842 of the glass width ---------- */
+html.fill{--sw:min(calc(100vw / 1.079),calc(var(--app-h,100dvh) / .842));--sh:calc(var(--sw) * .75)}
+html.fill #bezel::after,html.fill #cablewrap{display:none}
+html.fill #stage{padding-top:0;justify-content:flex-start}
 @media (max-width:640px){
-  /* a phone: all the width, and whatever height the keyboard leaves */
-  html.fill{--sw:100vw;--sh:var(--app-h,100dvh)}
-  html.fill #stage{padding-top:0;justify-content:flex-start}
+  /* a phone: all the width and whatever height the keyboard leaves, less the bezel (12px at the
+     sides and top, 22px at the bottom) */
+  html.fill{--sw:calc(100vw - 24px);--sh:calc(var(--app-h,100dvh) - 34px - env(safe-area-inset-top,0px))}
+  html.fill #stage{padding-top:env(safe-area-inset-top,0px);justify-content:flex-start}
 }
+/* a phone on its side: too short for the desktop's monitor, so the phone's bezel across the whole width,
+   with no cable; text sized so that about 24 lines would fill the glass */
+@media (pointer:coarse) and (max-height:500px) and (min-width:641px){
+  :root{--sw:calc(100vw - 30px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+    --sh:calc(var(--app-h,100dvh) - 50px - env(safe-area-inset-top,0px));--fs:clamp(13px,calc(var(--sh) / 24),17px)}
+  #stage{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+  #bezel{padding:12px 12px 22px;border-radius:16px 16px 22px 22px / 14px 14px 28px 28px}
+  #bezel::after,#cablewrap,.badge{display:none}
+  html.fill{--sw:calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));--sh:calc(var(--app-h,100dvh) - 34px - env(safe-area-inset-top,0px))}
+  html.fill #stage{padding-top:env(safe-area-inset-top,0px)}
+}
+/* ---------- lite effects (the effects command; auto picks them for a browser that draws without a graphics
+   chip): the same look for much less drawing. One small glow, the band stepped five times a second and not
+   blended, the flicker held at its average and the cable still, one inner shadow on the glass. The engine also
+   leaves out the afterglow of scrolling text (clear still fades). ---------- */
+html.lite .line{text-shadow:0 0 4px rgba(var(--phos-rgb),.75)}
+html.lite .line.dim{text-shadow:0 0 4px rgba(var(--dim-rgb),.7)}
+html.lite .line.err{text-shadow:0 0 4px rgba(var(--err-rgb),.75)}
+html.lite .line.warn{text-shadow:0 0 4px rgba(255,209,102,.7)}
+html.lite .edge{text-shadow:none}
+html.lite .cursor{box-shadow:0 0 4px rgba(var(--phos-rgb),.75)}
+html.lite .band{mix-blend-mode:normal;animation-timing-function:steps(95)}
+html.lite .flicker{animation:none;opacity:.67}
+html.lite #sway{animation:none}
+html.lite #screen{box-shadow:inset 0 0 28px 8px rgba(0,0,0,.85),0 0 0 2px #050605}
 /* ---------- switched off: the picture falls to a line, then a dot, then nothing ---------- */
 #crt.off{animation:crtoff .7s cubic-bezier(.4,0,.8,.2) forwards}
 @keyframes crtoff{0%{transform:none;opacity:1}55%{transform:scale(1,.006);opacity:1}85%{transform:scale(.02,.006);opacity:1}100%{transform:scale(0,0);opacity:0}}
