@@ -20,11 +20,7 @@ it is always {year} in here.
 # Write each paragraph as ONE line: the glass wraps it to fit, phones included.
 #
 # Project rows: name, a run of spaces, then the status or date. Pad every row to the same
-# width (41 characters here) so the right-hand column lines up; the ~~ marks are not
-# printed and do not count, and {year} counts as the four digits it becomes. On a narrow screen the run of spaces shrinks to fit.
-# ~~text~~ strikes text through: here, the real date, then the in-character one, in
-# whatever year the machine is.
-# Retired projects move to the attic file (site/home.js).
+# width (41 characters here) so the right-hand column lines up. On a narrow screen the run of spaces shrinks to fit.
 == mail ==
 welcome to phosphor-9!
 
