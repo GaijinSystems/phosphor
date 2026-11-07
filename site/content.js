@@ -24,7 +24,7 @@ it is always {year} in here.
 == mail ==
 welcome to phosphor-9!
 
-this is a video terminal for your website. it is plugged into ten machines, from version 7 unix, cp/m, an apple iie and a commodore 128 to tops-20, 4.3bsd, ms-dos, vax/vms, irix and a debian server of today. type connect to change machines. you fill them with your own words.
+this is a video terminal for your website. it is plugged into thirteen machines, from version 7 unix, vm/370, a trs-80, multics, cp/m, an apple iie and a commodore 128 to tops-20, 4.3bsd, ms-dos, vax/vms, irix and a debian server of today, and it can dial a bulletin board. type connect to change machines. you fill them with your own words.
 
 it is plain html, css and javascript: no build step, no frameworks, no server code. copy the folder to any web server, edit the files in site/, and it is yours.
 
