@@ -800,8 +800,8 @@ remove the comment marks around it.
 The tube effects come in two strengths. `full` draws a double glow round the text, a bright
 band rolling down the glass, a flicker, and a cable that sways. `lite` looks much the same for
 far less drawing: one small glow, the band moving in small steps (five a second) without
-blending, the flicker held at its average and the cable still, one inner shadow on the glass
-instead of two, and no afterglow behind scrolling text (`clear` still fades). It is for browsers that draw the page without a graphics chip, where `full`
+blending, the flicker held at its average, one inner shadow on the glass instead of two,
+and no afterglow behind scrolling text (`clear` still fades). It is for browsers that draw the page without a graphics chip, where `full`
 keeps half a processor core or more busy even while nothing is typed. The `effects:` setting picks one; `auto`, the default, uses `full`
 unless the browser's WebGL is a software renderer (SwiftShader, llvmpipe and the like) or
 missing, or the screen's warm-up draws at under 25 frames a second; then `lite`. Visitors can

@@ -29,7 +29,7 @@ behind gaijin.systems.
   browser remembers. `help`
   lists it, and VMS `HELP` has `FILL` and `RUN`.
 - `lite` tube effects for browsers that draw without a graphics chip: one small glow, a stepped,
-  unblended band, a still flicker and cable, a lighter inner shadow, no afterglow when scrolling. New setting `effects:` (`auto`,
+  unblended band, a still flicker, a lighter inner shadow, no afterglow when scrolling. New setting `effects:` (`auto`,
   `full`, `lite`); `auto` picks `lite` for a software or missing WebGL, or a slow warm-up. The
   `effects` command shows or switches it and the browser remembers; `help` lists it, VMS `HELP`
   has `EFFECTS`.
