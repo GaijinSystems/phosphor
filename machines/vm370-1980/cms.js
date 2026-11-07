@@ -111,9 +111,18 @@ V.command=function(l,ctx){ /* one CMS command line; its return code */
   if(V.find(w,'MODULE','*'))return V.module(w,split(W),l);
   if(V.opt.impcp){var rc=V.cp(l,'cms');if(rc!==null)return rc}
   P.typeLine('UNKNOWN '+(V.opt.impcp?'CP/CMS':'CMS')+' COMMAND','err'); /* without its code, whatever EMSG says */
+  if(ctx.typed)osWords(w); /* and a word from across the room after it */
   V.unknown=!!ctx.typed; /* at the terminal, no ready message follows */
   return -3;
 };
+/* OS/VS words typed at CMS, which knew none of them: what a VM shop said to the batch side across the room */
+var OSV=[[/^\/\//,['JCL IS FOR OS. CMS TAKES YOU AT YOUR WORD.']],[/^TSO$/,['TSO IS ON THE OTHER MACHINE. HERE EVERYONE HAS A 370 OF THEIR OWN.']],
+  [/^IEFBR14$/,['IEFBR14 DOES NOTHING, AND NEEDS A JOB CARD TO DO IT.','CMS DOES NOTHING TOO, AND NEEDS NO CARD FOR IT.']]];
+function osWords(w){
+  var x=OSV.filter(function(o){return o[0].test(w)})[0];
+  if(x)x[1].forEach(function(t){P.typeLine(t)});
+  return !!x;
+}
 C.CP=function(a,o,l){
   var rest=l.trim().replace(/^\S+\s*/,'');
   if(!rest){V.cpMode=true;V.cpReady=true;P.typeLine('CP');return 0}
