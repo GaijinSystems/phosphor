@@ -719,7 +719,7 @@ site's own files come back fresh, with any changes laid over them. The bulletin 
 wall lines, comments and door games under `phosphor-9/bbs/`.
 When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
 what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), the
-Apple says `DISK FULL`, and on the C128 `DSAVE` ends as usual but the drive status, `DS$`, says
+Apple's `SAVE` and `BSAVE` say `DISK FULL`, and on the C128 `DSAVE` ends as usual but the drive status, `DS$`, says
 `72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
 
 ### Switching a game off

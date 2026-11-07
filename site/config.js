@@ -55,7 +55,8 @@ source:    https://github.com/GaijinSystems/phosphor
 commands:
 
 # Locked files and folders in the home directory: listed, but reading one is refused
-# in each machine's own words, unless you are root where there is one. Paths work (.trash/core); a trailing / makes a locked folder.
+# in each machine's own words, unless you are root where there is one. Paths work
+# (.trash/core); a trailing / makes a locked folder.
 protected: photo01.pic, photo02.pic, secrets, .trash/core
 
 # The coiled cable under the monitor: turns is a count (desktop: the count on a wide screen;
