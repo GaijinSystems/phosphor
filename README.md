@@ -195,7 +195,7 @@ Phosphor.command({names:['roll'],help:'roll a die',
 | `trs80` | Radio Shack TRS-80 Model III, TRSDOS 1.3 and Level II BASIC | 1981 | on its disk: `DIR` lists them; `BASIC` then `RUN"NAME/BAS"`, and `ZORK1`, `ZORK2` |
 | `multics` | Honeywell Level 68, Multics MR8.0 | 1981 | none |
 | `cpm` | S-100 Z80, CP/M 2.2 | 1982 | `ZORK1` in user area 0, `ZORK2` in user area 3 |
-| `apple2` | Apple IIe, DOS 3.3 | 1984 | `ZORK I`, `ZORK II` and four BASIC games on the disk, started with `RUN` |
+| `apple2` | Apple IIe, DOS 3.3 | 1984 | `ZORK I`, `ZORK II`, `ZORK III` and four BASIC games on the disk, started with `RUN` |
 | `tops20` | DECSYSTEM-2060, TOPS-20 V6.1 | 1986 | `<GAMES>`, started by name |
 | `c128` | Commodore 128 with a 1571 drive, BASIC 7.0; `GO 64` makes it a Commodore 64 | 1986 | on its disk: `DIRECTORY` lists them |
 | `bsd` | VAX-11/780, 4.3BSD | 1987 | `/usr/games` |
@@ -270,7 +270,9 @@ message, `MSG ALL` and `WNG ALL` reach everyone, and `SHUTDOWN` stops the machin
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
-FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP.
+FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP. A few words from the batch side of the machine
+room, typed at CMS, get an answer from the VM side (`OSV` in `cms.js`), and the operators have more to say than
+their replies to `MSG OPERATOR`.
 
 ### Multics
 
@@ -305,7 +307,9 @@ everything: `login Repair` takes the `root password:` in `machines/multics-1981/
 The messages and formats were checked against Multics MR12.8 running under the DPS8M simulator, and against the
 MR8.0 manuals where the two differ: the 1980 banner, `Segment foo not found.`, `You are protected from preemption
 until 1007.8.`, the mail and help dialogues and the `qedx` requests are the manuals'. Multics is case sensitive:
-`LIST` is not `list`, and the terminal's words are typed in lower case.
+`LIST` is not `list`, and the terminal's words are typed in lower case. A few other systems' commands get a word from
+a Multics hand after `Segment ... not found.` (`ELSEWHERE` in `commands.js`), and there is more in the hierarchy
+than the guest is shown.
 
 ### TRS-80 Model III
 
@@ -333,8 +337,8 @@ next boot (except in the ROM's BASIC, reached by holding BREAK at power-on), and
 browser brings the disk back as it came. `ZORK1` and `ZORK2` start Infocom's games. BASIC, TRSDOS and the disk are
 written for this terminal and contain nothing of Tandy's or Microsoft's, and the boot screen's
 picture is drawn for it; the screens, prompts, messages and what BASIC prints were checked against a Model III running
-TRSDOS 1.3 in xtrs, and its ROM BASIC in MAME. A few Commodore words typed at a prompt get an answer from a Model III
-owner of 1981 (the `JOKES` table in `trs80.js`).
+TRSDOS 1.3 in xtrs, and its ROM BASIC in MAME. A few Commodore words, and a few others, typed at a prompt get an answer
+from a Model III owner of 1981 (the `JOKES` table in `trs80.js`).
 
 ### Apple IIe
 
@@ -353,7 +357,7 @@ and your own text commands show on the terminal's glass, and a key brings the Ap
 and `CONNECT` answer on the Apple's screen. A program can use them too, after an ampersand: `& "MAIL"`. They come from
 `PHOSPHOR`, the program the disk's `HELLO` loads at boot, the way a utility of the time hooked itself to DOS and to `&`.
 
-`RUN ZORK I` and `RUN ZORK II` start Infocom's games. The BASIC interpreter, the 6502 behind `CALL` and the monitor's
+`RUN ZORK I`, `RUN ZORK II` and `RUN ZORK III` start Infocom's games. The BASIC interpreter, the 6502 behind `CALL` and the monitor's
 `G`, and the disk are written for this terminal and contain nothing of Apple's or Microsoft's; the ROM is not there,
 so memory above `$C000` reads as zeros, and the `GR` and `HGR` graphics are accepted but draw nothing. Its output
 was checked line for line against an Apple IIe running DOS 3.3 in MAME. `XYZZY`, `PLUGH` and `PR#7` (or `IN#7`) at the `]`
@@ -416,7 +420,8 @@ modem is a 2400 and the CP/M machine's a 1200, so the board comes up at that spe
 1982 it talks plain ASCII. The board, modem and doors are in `machines/shared/` (`bbs.js`, `modem.js`,
 `bbs-doors.js`, `bbs.css`); its board, text, callers and files are all invented for this terminal. The colours are
 the machine's to ask for: `\u0005` and a hex digit in a line types the rest of it in that colour, which the
-machine's CSS gives as `.k0` to `.kf`, and `\u0005` with anything else goes back to plain.
+machine's CSS gives as `.k0` to `.kf`, and `\u0005` with anything else goes back to plain. A few words the main
+menu does not offer get an answer from the board too (`ASIDE` in `bbs.js`).
 
 ### Choosing machines
 
@@ -613,8 +618,9 @@ made): `BULLSEYE` (darts for up to 20 players) and `BUZZWORD` (phrases for repor
 for this terminal; and `ZORK1` and `ZORK2` at `TRSDOS Ready`, the same story files as on DOS and CP/M.
 
 **MS-DOS and CP/M**: Zork I and Zork II, Infocom's own story files on an interpreter written
-for this terminal. On DOS, `CD \ZORK` then `ZORK1` or `ZORK2`, or `C:\ZORK\ZORK1` from
-anywhere. On CP/M, `ZORK1` from user area 0, and `USER 3` then `ZORK2`.
+for this terminal, and on DOS Zork III as well. On DOS, `CD \ZORK` then `ZORK1`, `ZORK2` or `ZORK3`, or
+`C:\ZORK\ZORK1` from anywhere. On CP/M, `ZORK1` from user area 0, and `USER 3` then `ZORK2`. Zork III came out in
+September 1982, after the CP/M machine was set up and the TRS-80's year, so neither has it.
 
 **The bulletin board** has two doors, written for this terminal: Star Haul, trading ore, grain and tech between
 five stations with ten jumps a day, and Deep Mine, how deep you dare dig before the roof comes down. Both keep
@@ -623,7 +629,7 @@ their players and best scores in the browser.
 **Apple IIe**, on the disk (`CATALOG` lists it; `RUN` and the name starts one, and `LIST` shows how it is made):
 `GUESS` (a number from 1 to 100), `BAGELS` (three digits, from clues), `LANDER` (bring a craft down on the Moon) and
 `KINGDOM` (ten years of land, grain and people), written for this terminal as type-in games of the time were; and
-`ZORK I` and `ZORK II`, the same story files as on DOS and CP/M.
+`ZORK I`, `ZORK II` and `ZORK III`, the same story files as on DOS.
 
 **IRIX** has `flight`, `buttonfly`, `dog`, `ideas`, `arena`, `newave` and `insect`, which
 want a graphics display and say so.
@@ -632,7 +638,7 @@ want a graphics display and say so.
 
 | Game | |
 |---|---|
-| `frotz` | the Z-machine interpreter, with Zork I and II in `INFOCOM_PATH`: `frotz zork1.z3` |
+| `frotz` | the Z-machine interpreter, with Zork I, II and III in `INFOCOM_PATH`: `frotz zork1.z3` |
 | `sl` | a steam locomotive, for those who type `sl` for `ls` (new drawings, after Toyoda Masashi's program) |
 | `cowsay`, `cowthink` | a cow says or thinks what you give it: `fortune \| cowsay` |
 | `fortune` | a saying, from a small set of old quotations chosen for this terminal |
@@ -850,7 +856,7 @@ how. Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 | Colossal Cave (4.3BSD, VMS and TOPS-20) | NetBSD | BSD licence, kept | |
 | 4.3BSD: `number`, `primes`, `factor`, `banner`, `hangman`, `worm`, `robots`, `snake` (`games.js`, `banner-font.js`) | NetBSD | BSD licence, kept | |
 | Rogue | Rogue 5.4.4 | BSD licence, kept, with the notice for the parts based on the work of Nicholas J. Kisseberth | |
-| Zork I and II (DOS, CP/M, Linux, Apple IIe, TRS-80) | Infocom's story files, release 119 and 63 | MIT licence (Microsoft, 2025), kept | The licence covers the software, read here as including the story files; Zork is a trademark and the licence does not cover the name |
+| Zork I and II (DOS, CP/M, Linux, Apple IIe, TRS-80), Zork III (DOS, Linux, Apple IIe) | Infocom's story files, releases 119, 63 and 25 | MIT licence (Microsoft, 2025), kept | The licence covers the software, read here as including the story files; Zork is a trademark and the licence does not cover the name |
 | Apple IIe: `GUESS`, `BAGELS`, `LANDER`, `KINGDOM` | New, for this terminal | AGPL, with the rest of `machines/` | |
 | C128: `HELLO`, `NICOMACHUS`, `ONE CHECK`, `BUZZWORD`, `DIAMOND`, `SINE WAVE` | *BASIC Computer Games* (1978), the listings Vintage BASIC carries | Public domain: on 15 June 2022 David Ahl placed everything he had written or edited in the public domain; the book credits each of these to him alone. Quoted in `games.js` | He asks that his work be used for educational and historical purposes and not for profit, which is a wish, not a condition. Only his own programs are used: the book's other games are other people's |
 | TRS-80: `BULLSEYE`, `BUZZWORD` | *BASIC Computer Games* (1978), the listings coding-horror/basic-computer-games carries | Public domain: on 15 June 2022 David Ahl placed everything he had written or edited in the public domain; the book credits both to him alone. Quoted in `disk.js` | He asks that his work be used for educational and historical purposes and not for profit, which is a wish, not a condition. Typed in as a Model III owner would: `RND(0)` for `RND(1)`, `CLEAR 500` in `BULLSEYE`, the titles centred in 64 columns |

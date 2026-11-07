@@ -69,7 +69,7 @@ behind gaijin.systems.
 - VMS runs the games in `[GAMES]`: Adventure, Conquest, Empire, Monster, Moria and Star Trek.
   Moria and Conquest keep their sites' play hours, by the visitor's clock.
 - DOS and CP/M run the real Zork I and II on a Z-machine interpreter, and keep some of its replies
-  at the prompt. There is no Zork III.
+  at the prompt. DOS has Zork III too; CP/M, set up before it came out in 1982, does not.
 - Games load the first time they run. Each machine's `later.js` names its games and holds their
   manual pages, so `ls`, `man` and `which` work before then. `commands: -name` switches a game
   off; the README shows how to add, remove and stub one.
@@ -94,7 +94,7 @@ behind gaijin.systems.
   visitor's own date and year. bash's prompt, tab completion, `history`, `!!` and `$(command)`; GNU's `ls`,
   `cat`, `rm` and `mkdir` messages and `--help`; `uname`, `ip`, `hostname -I`, `free`, `df`, `uptime`, `w`,
   `ps aux`, `top`, `systemctl`, `journalctl`, `fastfetch`, and `sudo` and `apt`, which know a guest when they
-  see one. In `/usr/games`, `frotz` with Zork I and II, `sl`, `cowsay` and `fortune`; and `cmatrix`.
+  see one. In `/usr/games`, `frotz` with Zork I, II and III, `sl`, `cowsay` and `fortune`; and `cmatrix`.
   New machine setting `shell: bash`; a machine's `year` may be `new Date().getFullYear()`.
 - NetHack 3.6.7 on the Linux machine, in `/usr/games`, translated from its C, with saves, bones and scores
   kept in the browser.
@@ -115,7 +115,7 @@ behind gaijin.systems.
   `SYSTAT`, `FINGER`, `MM`, and `ADVENTURE` and `DUNGEON` in `<GAMES>`. A machine can now answer Escape,
   Tab and `?` at the prompt itself (`Phosphor.recognize`).
 - A ninth machine, an Apple IIe with DOS 3.3 (`apple2`): its own 40-column screen, Applesoft BASIC, the monitor and a
-  disk kept in the browser, with Zork I and II and four new BASIC games on it.
+  disk kept in the browser, with Zork I, II and III and four new BASIC games on it.
 - A tenth, a Commodore 128 (`c128`, 1986): BASIC 7.0 on its screen editor, in 40 columns or, with Escape then X,
   80; a 1571 disk kept in the browser; and `GO 64` for a Commodore 64 with BASIC V2. Six of David Ahl's
   type-in games are on the disk.
@@ -141,3 +141,4 @@ behind gaijin.systems.
   `su -c`, and as root `sudo`, `systemctl` and `shutdown`; on TOPS-20, OPERATOR, `ENABLE` and the `$` prompt.
   TOPS-20's `LOGIN` now says `?Incorrect password`, as the 6.1 EXEC does.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
+- The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.
