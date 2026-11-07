@@ -131,7 +131,8 @@ behind gaijin.systems.
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
   with `BREAK` held at power-on, `CSAVE`/`CLOAD` to a cassette kept in the browser, `SYSTEM`, Zork I and II,
   two of David Ahl's public-domain games and a new block-graphics one; checked against xtrs and MAME. When the
-  browser's storage is full, `SAVE` says `Disk full`, and `KILL` and `RENAME` fail with a directory write error.
+  browser's storage is full, `SAVE` says `Disk full`, and `KILL` and `RENAME` fail as a directory write did (`Disk I/O
+  error` in BASIC, `* * ERROR 18 * *` at TRSDOS).
 - A thirteenth, a Honeywell Level 68 running Multics MR8.0 (`multics`, 1981): `login Guest`, ready messages, QUIT
   and command levels, `>udd>Guest>Guest` with segments, ACLs and added names, `qedx`, `exec_com`, info segments,
   and the letter in `read_mail`; the guest's files are kept in the browser. A machine can now take Ctrl-C itself
