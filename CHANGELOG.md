@@ -97,7 +97,7 @@ behind gaijin.systems.
   see one. In `/usr/games`, `frotz` with Zork I, II and III, `sl`, `cowsay` and `fortune`; and `cmatrix`.
   New machine setting `shell: bash`; a machine's `year` may be `new Date().getFullYear()`.
 - NetHack 3.6.7 on the Linux machine, in `/usr/games`, translated from its C, with saves, bones and scores
-  kept in the browser.
+  kept in the browser; `apt` and its history show `nethack-console` installed with the other games.
 - `machine: random` starts on a machine picked at random, the same one for the rest of the browser tab.
   The Commodore 128 is left out of the draw (`random:false` in the catalog).
 - `help` on the Unix machines lists the terminal's own commands apart, and their manual pages say the
@@ -115,14 +115,17 @@ behind gaijin.systems.
   `SYSTAT`, `FINGER`, `MM`, and `ADVENTURE` and `DUNGEON` in `<GAMES>`. A machine can now answer Escape,
   Tab and `?` at the prompt itself (`Phosphor.recognize`).
 - A ninth machine, an Apple IIe with DOS 3.3 (`apple2`): its own 40-column screen, Applesoft BASIC, the monitor and a
-  disk kept in the browser, with Zork I, II and III and four new BASIC games on it.
+  disk kept in the browser, with Zork I, II and III and four new BASIC games on it. When the browser's storage is
+  full, `SAVE` and `BSAVE` say `DISK FULL` and write nothing.
 - A tenth, a Commodore 128 (`c128`, 1986): BASIC 7.0 on its screen editor, in 40 columns or, with Escape then X,
   80; a 1571 disk kept in the browser; and `GO 64` for a Commodore 64 with BASIC V2. Six of David Ahl's
-  type-in games are on the disk.
+  type-in games are on the disk. When the browser's storage is full, `DSAVE` writes nothing and `DS$` says
+  `72,DISK FULL`.
 - An eleventh, an IBM System/370 Model 158 running VM/370 Release 6 with CMS (`vm370`, 1980), on a typewriter
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
   EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
-  Hercules. A machine can now answer an empty line itself (`Phosphor.blank`).
+  Hercules. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` leaves it
+  without one, as it was.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
   with `BREAK` held at power-on, `CSAVE`/`CLOAD` to a cassette kept in the browser, `SYSTEM`, Zork I and II,
@@ -135,8 +138,9 @@ behind gaijin.systems.
   and handshake through the speaker, and `CONNECT 2400`. Its messages, bulletins and files are the site's own words;
   callers pick a handle, choose ANSI colour or ASCII, post, write on the wall and play two doors, Star Haul and
   Deep Mine, all kept in the browser. `+++` and `ATH` hang up, and the terminal goes back to the machine you came
-  from. MS-DOS and CP/M have `TERM` to call it too. Like the C128, it sits out `machine: random`. New section
-  `== board ==`; the engine colours runs of a line for machines that ask (`.k0` to `.kf`).
+  from. MS-DOS and CP/M have `TERM` to call it too, by name or by its path (`C:\COMM\TERM`, `A:TERM`). Like the
+  C128, it sits out `machine: random`. New section `== board ==`; the engine colours runs of a line for machines
+  that ask (`.k0` to `.kf`).
 - Debian 13 and TOPS-20 have a super-user too, for those who look in the right place: on Debian, `su`,
   `su -c`, and as root `sudo`, `systemctl` and `shutdown`; on TOPS-20, OPERATOR, `ENABLE` and the `$` prompt.
   TOPS-20's `LOGIN` now says `?Incorrect password`, as the 6.1 EXEC does.
