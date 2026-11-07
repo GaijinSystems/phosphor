@@ -193,7 +193,14 @@ function loadDisk(){
 function basicLines(src){
   return src.split('\n').filter(Boolean).map(function(l){var m=l.match(/^(\d+)\s?(.*)$/);return [+m[1],P.applesoft.parse(m[2])]});
 }
-function saveDisk(){P.save(KEY,disk)}
+function saveDisk(){return P.save(KEY,disk)}
+function put(f,n,t,d){ /* SAVE and BSAVE: file f, or a new one named n, of type t now holds d. The browser's storage full is a full disk, and the file is not written. A browser that keeps nothing still has this visit's disk */
+  var undo;
+  if(f){if(f.l)throw {dos:10};if(f.t!==t)throw {dos:13};var keep=f.d;f.d=d;undo=function(){f.d=keep};if(used()>496){undo();throw {dos:9}}}
+  else{f={n:n,t:t,l:false,d:d};addFile(f);undo=function(){disk.files[disk.files.indexOf(f)]=null}}
+  if(saveDisk()||!P.save(KEY+'-probe',null))return;
+  undo();saveDisk();throw {dos:9};
+}
 function bytesOf(f){
   if(f.t==='A'||f.t==='I')return 2+(f.d||[]).reduce(function(a,L){return a+5+L[1].length},2);
   if(f.t==='B')return 4+((f.d&&f.d.b)||[]).length;
@@ -284,9 +291,7 @@ function dos(line,inProg){ /* a DOS command: null when it is not one; else what 
       done(c==='LOAD'?'loaded':c==='CHAIN'?'chain':'run');
     })}};
   case 'SAVE':
-    if(f){if(f.l)throw {dos:10};if(f.t!=='A')throw {dos:13};var keep=f.d;f.d=basic.program();if(used()>496){f.d=keep;throw {dos:9}}}
-    else addFile({n:D.name,t:'A',l:false,d:basic.program()});
-    saveDisk();
+    put(f,D.name,'A',basic.program());
     return {job:function(done){sleep(400,function(){done()})}};
   case 'DELETE':
     if(!f)throw {dos:6};if(f.l)throw {dos:10};
@@ -306,9 +311,7 @@ function dos(line,inProg){ /* a DOS command: null when it is not one; else what 
   case 'BSAVE':
     if(D.opt.A===undefined||D.opt.L===undefined)throw {dos:11};
     var b=Array.prototype.slice.call(mem.subarray(D.opt.A,D.opt.A+D.opt.L));
-    if(f){if(f.l)throw {dos:10};if(f.t!=='B')throw {dos:13};var kb=f.d;f.d={a:D.opt.A,b:b};if(used()>496){f.d=kb;throw {dos:9}}}
-    else addFile({n:D.name,t:'B',l:false,d:{a:D.opt.A,b:b}});
-    saveDisk();return 'ok';
+    put(f,D.name,'B',{a:D.opt.A,b:b});return 'ok';
   case 'OPEN':
     if(f&&f.t!=='T')throw {dos:13};
     if(!f){f={n:D.name,t:'T',l:false,d:''};addFile(f);saveDisk()}

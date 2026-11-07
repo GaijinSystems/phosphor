@@ -57,7 +57,7 @@ engine then loads the chosen machine. Anything you set wins over the machine.
    `connect bsd` reloads the page with `?machine=bsd`, so each machine starts from cold and
    nothing of the last one is left behind.
 3. **A game.** A game's own files load the first time someone runs it, and then stay for the
-   visit. Until then `ls /usr/games`, `man rogue` and `which rogue` already work, and a visitor
+   visit. Until then, on 4.3BSD, `ls /usr/games`, `man rogue` and `which rogue` already work, and a visitor
    who never plays downloads none of it. If a game's file fails to arrive, the program says
    it cannot execute (on VMS, that the image could not be activated; on TOPS-20, that the program
    could not be loaded) and the prompt comes back;
@@ -96,17 +96,21 @@ At the top of a file, before its first `== section ==`, one per line:
 | `badge:` | The name on the monitor's bezel (desktop only). |
 | `speed:` | Typing speed. `1` is normal, `1.25` is 25% faster. |
 | `uppercase:` | `yes` prints everything in capitals, like an uppercase-only teletype; `no` does not. Without this line, `yes`. |
-| `prompt:` | The shell prompt, normally `$ `. Use quotes to keep a trailing space: `prompt: "% "`. |
+| `prompt:` | The shell prompt, normally `$ `. Use quotes to keep a trailing space: `prompt: "% "`. It replaces the prompt on V7, 4.3BSD and VMS; the other machines make their own. |
 | `sound:` | `on`: keyclicks from the first tap or keypress. `off`: silent until `sound on`. |
 | `effects:` | `auto` (the default), `full` or `lite`; see [Looks](#looks). A visitor's own choice with the `effects` command wins in their browser. |
 | `source:` | Where the `source` command points. Must start with `http://` or `https://`. See [Licence](#licence). |
 | `commands:` | Switch commands off or on: `commands: -ping, -sudo`. Works on the built-in commands, the machine's (`-sudo`) and the games (`-rogue`); see [Switching a game off](#switching-a-game-off). Without the `-`, it switches back on one the machine has switched off (`commands: vi`). Your own `== command: ==` sections are never switched off, so delete those instead. |
-| `protected:` | Locked files and folders: listed by `ls`, but `cat` says *can't open*. Paths work (`.trash/core`); a trailing `/` makes a locked folder. |
+| `protected:` | Locked files and folders: listed (by `ls`, `DIR` and the like), but they will not open, and each machine says so in its own words: `cat: can't open secrets` on V7, `secrets: Permission denied` on 4.3BSD, `cat: secrets: Permission denied` on Debian, `-RMS-E-PRV` on VMS, `Access denied` on MS-DOS. Paths work (`.trash/core`); a trailing `/` makes a locked folder. |
 | `machine:` `machines:` | Which machine the terminal starts on, and which ones the `connect` command offers: `machines: v7, bsd`. Unset, the first and all of them. With one machine there is no `connect`. `machine: random` picks one of the allowed machines when the address doesn't name one, and keeps that pick for the rest of the browser tab, so a reload boots the same machine and a new tab picks again. The Commodore 128 and the bulletin board sit out the draw: give a machine `random:false` in `machines/machines.js` to leave it out the same way. The address, `connect` and these settings still reach it, and if only such machines are allowed, random picks among them. |
 | `hostname:` | The machine's name. Normally taken from your domain (`example.com` becomes `example`). |
+| `year:` | One year for every machine, its clock and `{year}`, in place of each machine's own (Debian's too, which otherwise takes the visitor's). Best left unset. |
+| `root password:` | The password of every machine's privileged account (`root`, and VMS's SYSTEM, TOPS-20's OPERATOR, VM/370's MAINT and Multics's Repair), in place of the one in its `machine.js`; the places where each machine's administrator left the password lying about give yours instead. On the bulletin board, see [The bulletin board](#the-bulletin-board). |
 | `cord turns:` `cord desktop:` `cord width:` `cord thickness:` `cord gap:` `cord straight:` `cord sway:` | The coiled cable under the monitor: `turns` is a count, and `desktop` is the count on a wide screen (`turns` is used on phones, and wherever `desktop` is unset); the rest are in screen pixels. Values outside a sensible range are pulled back into it. |
 
-A machine's year lives in `machines/machines.js`, and `{year}` in any text follows it. The
+A machine's year lives in `machines/machines.js` (unless `year:` is set), and `{year}` in any text follows it.
+There is no `fill:` setting: `fill` is the visitor's command, and their browser remembers it (`phosphor-9/fill`);
+commands are switched off with `commands:`. The
 machine sets a few more (`installed:`, `user:`, `homes:`, `case:`, `offline:`);
 you can override those too. `case:` is `sensitive`, where `FILE` and `file` differ, as on
 Unix, or `ignore`, where they are the same, as on DOS.
@@ -126,7 +130,7 @@ A line like `== welcome ==` starts a section; the lines after it are printed as 
 | `== man: NAME ==` | The description part of a manual page. Replaces a built-in page or adds a new one. |
 | `== boot ==` | A machine coming up after power-on, a line at a time; `text @300` waits 300 ms after the line. |
 | `== aliases ==` | Shortcuts, one per line: `ll = ls -l`, or `cl = clear ; ls`. Only useful on a machine whose shell had aliases; the 1979 machine has none. |
-| `== board ==` | The bulletin board's settings, one per line: `name:` (Afterglow BBS), `number:` (555-0142), `sysop:` ({owner}) and `password:` (the sysop's). Unset, the defaults in brackets. |
+| `== board ==` | The bulletin board's settings, one per line: `name:` (Afterglow BBS), `number:` (555-0142), `sysop:` ({owner}), `node:` (1, the node number in the box a caller sees first) and `password:` (the sysop's). Unset, the defaults in brackets. |
 
 ### Inside a section
 
@@ -173,7 +177,8 @@ at most 4 MB; past that, the write stops and the machine says its disk is full.
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
 something else to GNU's tools, the usage line is `ls --help`. The Linux machine's bash also
-completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`. PageUp and PageDown scroll back through the output
+completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`; the C shell of 4.3BSD
+and IRIX has `!!` and `history` too. PageUp and PageDown scroll back through the output
 once it has finished typing.
 
 To add a command that prints text, use a `== command: ==` section. To add one that does
@@ -263,10 +268,14 @@ and starts another, `@` takes back a character, `"` makes the next one plain. `L
 `ACCESS 291 B` reach another user's disk. `HELP` lists its topics, and among them the terminal's own words, which
 work here as on every machine. After `LOGOFF`, `LOGON GUEST` takes the password the log message gives.
 
-MAINT, the system programmer, is the privileged account (classes A to G): `LOGON MAINT` with the
-`root password:` in `machines/vm370-1980/machine.js`. The system programmer keeps the CP directory, passwords and
-all, on his 191 disk, which anyone may link to; as MAINT, the locked files open, `SET LOGMSG` replaces the log
-message, `MSG ALL` and `WNG ALL` reach everyone, and `SHUTDOWN` stops the machine. The empty line is the machine's:
+MAINT, the system programmer, has every class, A to G: `LOGON MAINT` with the `root password:` in
+`machines/vm370-1980/machine.js`. He keeps the CP directory, `USER DIRECT`, passwords and all, on his 191 disk, which
+anyone may link to, and it shows other ways in. AUTOLOG1 still has the password VM/370 came with,
+AUTOLOG, and classes A to E and G, so it too can `SET LOGMSG`, which replaces the log message for the rest of the visit
+(and with it the line that gives the guest's password), send `MSG ALL` and `WNG ALL` to everyone, and `SHUTDOWN` the
+machine. CMSBATCH, the batch machine, sits disconnected with the password BATCH, and an ordinary user's classes.
+OPERATOR's password is there too, but the operator is logged on at the console. Only MAINT opens the locked files.
+The empty line is the machine's:
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
@@ -331,7 +340,8 @@ up arrow (or `^`) types the power sign, which the Model III shows as an arrow.
 
 The terminal's own commands are words typed at `TRSDOS Ready` or at `>`: `ABOUT`, `MAIL`, `SOURCE` and your own text
 commands show on the terminal's glass, and a key brings the Model III back; `FILL`, `SOUND`, `EFFECTS` and `CONNECT`
-answer on its screen, and TRSDOS's `HELP` lists them after its own. They come from `PHOSPHOR/CMD`, which TRSDOS runs at
+answer on its screen, and TRSDOS's `HELP` lists them after its own; at BASIC's `>`, which has no `HELP`, it shows the
+terminal's help on the glass. They come from `PHOSPHOR/CMD`, which TRSDOS runs at
 boot (its `AUTO`), as utilities of the time hooked themselves in; killing or overwriting it turns them off from the
 next boot (except in the ROM's BASIC, reached by holding BREAK at power-on), and clearing the site's data in the
 browser brings the disk back as it came. `ZORK1` and `ZORK2` start Infocom's games. BASIC, TRSDOS and the disk are
@@ -383,7 +393,8 @@ Commodore 64, light blue on blue, with BASIC V2 (`LOAD"$",8` then `LIST` for the
 `LOAD"NAME",8`), until `RESET`, which is the reset button, or a reload.
 
 The terminal's own commands are words typed at `READY.`: `FILL`, `SOUND ON` and `SOUND OFF`,
-`EFFECTS` (with `AUTO`, `FULL` or `LITE`), `CONNECT` and `SOURCE`; `HELP` lists them. Both BASICs
+`EFFECTS` (with `AUTO`, `FULL` or `LITE`), `CONNECT` and `SOURCE`; `HELP` lists them, except after an error in a
+program, when it does what BASIC 7.0's `HELP` did: it lists the line the error was in, the error shown in reverse. Both BASICs
 were written for this terminal and checked against a C128 running in the VICE emulator: the boot
 screens, the messages, the editor's ways and what programs print. The characters are drawn for
 this terminal too; Commodore's ROMs are not used. `SOUND`, `PLAY` and the SID's registers make
@@ -402,7 +413,7 @@ tone and the handshake before `CONNECT 2400`. The board, Afterglow BBS, is fille
 about section and the `now` file are its General messages, each project row in the letter is a message of its
 own, the home folder's files (nothing hidden or locked) are the sysop's notes and the first file area, and the
 welcome, the about section and your own `== command: ==` sections with help text are among its bulletins. A
-`== board ==` section changes its name, number and sysop.
+`== board ==` section changes its name, number, node and sysop.
 
 A caller picks a handle and, on a board of 1986 or later, ANSI colour or plain ASCII; the board then has
 bulletins, message bases to read and post in, a file area whose downloads end as they would on a terminal with
@@ -414,8 +425,10 @@ to the machine the visitor came from. What a caller adds (handle, posts, wall, c
 browser only. The sysop is `{owner}`, and the password is set by `var PASSWORD` in `machines/shared/bbs.js` (or `password:` in
 `== board ==`, or, on the bbs machine, a `root password:` in site/); someone left it in a log in the file area.
 
-The board can also be reached from MS-DOS and CP/M: `TERM` is a terminal program on each (`C:\COMM\TERM.EXE`,
-`A:TERM.COM`), which lists the numbers and passes AT commands to the modem; ^C goes back to the prompt. The PC's
+The board can also be reached from MS-DOS and CP/M: `TERM` is a terminal program on each, which lists the numbers
+and passes AT commands to the modem; ^C goes back to the prompt. On DOS it is `C:\COMM\TERM.EXE`, on the `PATH`, so
+`TERM` runs it from anywhere, as does its path (`C:\COMM\TERM`, with or without `.EXE`); on CP/M it is `TERM.COM` in
+user area 0, where `TERM` or `A:TERM` runs it. The PC's
 modem is a 2400 and the CP/M machine's a 1200, so the board comes up at that speed, in that machine's year: in
 1982 it talks plain ASCII. The board, modem and doors are in `machines/shared/` (`bbs.js`, `modem.js`,
 `bbs-doors.js`, `bbs.css`); its board, text, callers and files are all invented for this terminal. The colours are
@@ -555,7 +568,9 @@ behave like the real one; the tables say which.
 |---|---|
 | `aardvark` | Aardvark's Museum, a DDL adventure |
 | `adventure` | Colossal Cave, the 350-point version |
-| `arithmetic`, `bcd`, `chess`, `ching`, `fortune`, `quiz` | as on V7, the Berkeley versions |
+| `arithmetic`, `bcd`, `ching`, `quiz` | as on V7: the programs as 4.3BSD shipped them, which differ from V7's little or not at all |
+| `chess` | V7's own PDP-11 program, which 4.3BSD ran in compatibility mode |
+| `fortune` | 4.3BSD's own `fortune`, with its own fortunes |
 | `backgammon`, `teachgammon` | backgammon, and a tutorial for it |
 | `banner` | large letters, down the page |
 | `battlestar` | a tropical adventure |
@@ -578,8 +593,8 @@ behave like the real one; the tables say which.
 | `trek` | Star Trek |
 | `zork` | Dungeon, which is what `zork` was on the 4.3BSD tape: its opening and V2.0a wording, with Dungeon 2.5.6 behind them, since the tape's own FORTRAN is lost |
 
-**VAX/VMS**, `RUN [GAMES]name` (`DIR [GAMES]` lists them; `LOGIN.COM` also lets you type
-`ADVENTURE`, `STARTREK`, `EMPIRE` or `MORIA` with arguments):
+**VAX/VMS**, `RUN [GAMES]name`, or the name on its own (`DIR [GAMES]` lists them; all six answer to their names,
+though `LOGIN.COM` defines only four of them as foreign commands):
 
 | Game | |
 |---|---|
@@ -623,7 +638,8 @@ for this terminal, and on DOS Zork III as well. On DOS, `CD \ZORK` then `ZORK1`,
 September 1982, after the TRS-80's year and after the CP/M machine was set up, so neither has it.
 
 **The bulletin board** has two doors, written for this terminal: Star Haul, trading ore, grain and tech between
-five stations with ten jumps a day, and Deep Mine, how deep you dare dig before the roof comes down. Both keep
+five stations with ten jumps a day, and Deep Mine, how deep you dare dig before the roof comes down, three trips a
+day. Both keep
 their players and best scores in the browser.
 
 **Apple IIe**, on the disk (`CATALOG` lists it; `RUN` and the name starts one, and `LIST` shows how it is made):
@@ -670,7 +686,9 @@ width, with no cable.
 Moria and Conquest keep their sites' original rules and refuse to run in working hours, by
 the visitor's own clock: Moria is closed 8 AM to 5 PM, Monday to Friday, and Conquest plays
 from 6 PM to 8 AM on weekdays, all weekend and on the holidays its file lists. The other VMS
-games run any time.
+games run any time. On TOPS-20, the names in `<GAMES>` other than ADVENTURE and DUNGEON say
+`?Games may not be played during prime time` from 8 AM to 6 PM, Monday to Friday, and the rest of
+the time that execute access is required; ADVENTURE and DUNGEON run any time.
 
 To open them all the time:
 
@@ -685,7 +703,11 @@ To open them all the time:
 
 Games that kept a save file or a score file in their day keep it in the visitor's own
 browser (`localStorage`), under keys starting `phosphor-9/` and then the game's name:
-`phosphor-9/rogue/...`, `phosphor-9/moria/files`, `phosphor-9/zork1/save/...`, `phosphor-9/nethack/files` and so on.
+`phosphor-9/rogue/...`, `phosphor-9/moria/files`, `phosphor-9/nethack/files`, `phosphor-9/adventure/...`,
+`phosphor-9/startrek/...`, `phosphor-9/empire/save`, `phosphor-9/monster/...`, `phosphor-9/conquest/common` and so on.
+A game on more than one machine keeps one set for all of them: Zork I, II and III save under
+`phosphor-9/zork1/save/...` (`zork2`, `zork3`) on every machine that has them, Adventure's saves are the same on
+4.3BSD, VMS and TOPS-20, and TOPS-20's DUNGEON saves under `phosphor-9/zork/dsave`, as 4.3BSD's `zork` does.
 Nothing is sent anywhere, and clearing the site's data in the browser clears them.
 The C128's disk is a save file too: what the visitor writes, renames or scratches is
 kept under `phosphor-9/c128/disk`; the files the disk came with (the games, and the programs and files
@@ -695,14 +717,19 @@ VM/370's A-disk, what the guest wrote, renamed or erased on it, is kept under `p
 Multics guest's home directory under `phosphor-9/multics/home`: only what the guest made, changed or deleted, so the
 site's own files come back fresh, with any changes laid over them. The bulletin board keeps its callers, posts,
 wall lines, comments and door games under `phosphor-9/bbs/`.
+When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
+what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), the
+Apple's `SAVE` and `BSAVE` say `DISK FULL`, and on the C128 `DSAVE` ends as usual but the drive status, `DS$`, says
+`72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
 
 ### Switching a game off
 
 `commands: -rogue, -hunt` in `site/config.js` switches games off like any other command.
 The program file stays in `/usr/games`, as it would on a machine where it was there and
-not working, and running it gives `rogue: Command not found.` On VMS, a game switched off
-goes back to `-SITE-F-PRIMESHIFT, games are disabled during prime shift`. This is the
-way to do it that survives an upgrade.
+not working, and running it gives `rogue: Command not found.` On VMS, `RUN [GAMES]MORIA` for a game
+switched off says `%DCL-W-ACTIMAGE, error activating image DUA0:[GAMES]MORIA.EXE;1` and then
+`-SITE-F-PRIMESHIFT, games are disabled during prime shift - see your system manager`, and its name on its own
+gets `%DCL-W-IVVERB, unrecognized command verb`. This is the way to do it that survives an upgrade.
 
 ### Putting a stub back
 
