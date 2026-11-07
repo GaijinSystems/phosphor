@@ -620,7 +620,7 @@ for this terminal; and `ZORK1` and `ZORK2` at `TRSDOS Ready`, the same story fil
 **MS-DOS and CP/M**: Zork I and Zork II, Infocom's own story files on an interpreter written
 for this terminal, and on DOS Zork III as well. On DOS, `CD \ZORK` then `ZORK1`, `ZORK2` or `ZORK3`, or
 `C:\ZORK\ZORK1` from anywhere. On CP/M, `ZORK1` from user area 0, and `USER 3` then `ZORK2`. Zork III came out in
-September 1982, after the CP/M machine was set up and the TRS-80's year, so neither has it.
+September 1982, after the TRS-80's year and after the CP/M machine was set up, so neither has it.
 
 **The bulletin board** has two doors, written for this terminal: Star Haul, trading ore, grain and tech between
 five stations with ten jumps a day, and Deep Mine, how deep you dare dig before the roof comes down. Both keep
