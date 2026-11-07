@@ -707,7 +707,8 @@ browser (`localStorage`), under keys starting `phosphor-9/` and then the game's 
 `phosphor-9/startrek/...`, `phosphor-9/empire/save`, `phosphor-9/monster/...`, `phosphor-9/conquest/common` and so on.
 A game on more than one machine keeps one set for all of them: Zork I, II and III save under
 `phosphor-9/zork1/save/...` (`zork2`, `zork3`) on every machine that has them, Adventure's saves are the same on
-4.3BSD, VMS and TOPS-20, and TOPS-20's DUNGEON saves under `phosphor-9/zork/dsave`, as 4.3BSD's `zork` does.
+4.3BSD, VMS and TOPS-20 (whose file names have no case, so there `ADVENTURE CAVE` finds a game saved as `Cave`),
+and TOPS-20's DUNGEON saves under `phosphor-9/zork/dsave`, as 4.3BSD's `zork` does.
 Nothing is sent anywhere, and clearing the site's data in the browser clears them.
 The C128's disk is a save file too: what the visitor writes, renames or scratches is
 kept under `phosphor-9/c128/disk`; the files the disk came with (the games, and the programs and files
@@ -718,9 +719,11 @@ Multics guest's home directory under `phosphor-9/multics/home`: only what the gu
 site's own files come back fresh, with any changes laid over them. The bulletin board keeps its callers, posts,
 wall lines, comments and door games under `phosphor-9/bbs/`.
 When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
-what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), the
-Apple's `SAVE` and `BSAVE` say `DISK FULL`, and on the C128 `DSAVE` ends as usual but the drive status, `DS$`, says
-`72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
+what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), and
+a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error` in BASIC, `* * ERROR 18 * *`
+at TRSDOS); the Apple's `SAVE`, `BSAVE`, `OPEN` of a new text file and the `CLOSE` after a `WRITE` say `DISK FULL`, and
+its `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR`; and on the C128 `DSAVE` ends as usual but the drive
+status, `DS$`, says `72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
 
 ### Switching a game off
 
