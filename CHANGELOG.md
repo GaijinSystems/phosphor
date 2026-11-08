@@ -67,7 +67,8 @@ behind gaijin.systems.
   `cfscores`, `cribbage`, `doctor`, `fish`, `hunt` (with robot players), `mille`, `monop`, `rain`,
   `sail`, `snscore`, `teachgammon`, `trek`, `worms` and `zork`, which is Dungeon, as on the tape.
 - VMS runs the games in `[GAMES]`: Adventure, Conquest, Empire, Monster, Moria and Star Trek.
-  Moria and Conquest keep their sites' play hours, by the visitor's clock.
+  Moria and Conquest keep their sites' play hours, by the visitor's clock. Moria's help is VMS HELP on its
+  own help library, recovered from the damaged copy of MORIAHLP.HLB that survives.
 - DOS and CP/M run the real Zork I and II on a Z-machine interpreter, and keep some of its replies
   at the prompt. DOS has Zork III too; CP/M, set up before it came out in 1982, does not.
 - Games load the first time they run. Each machine's `later.js` names its games and holds their
@@ -80,10 +81,13 @@ behind gaijin.systems.
 - Text tools: `grep`, `wc`, `sort`, `uniq`, `tail`, `tr`, `tee`, `cal`, `file`, `du` and others.
 - Each machine has only the commands its real system had; `help` lists just the essentials.
 - Scripts and the prompt understand `for`, `while`, `until`, `if`, `case`, `test`, `expr`, `read`,
-  `shift`, `$1` and backticks; on csh machines, `foreach`, `>&`, `$status`, `$#name`, and `if`
-  with `&&`, `||`, `!`, arithmetic, `=~` and `-r` `-w` `-x` `-e` `-d` `-z`; csh's `@` (4.3BSD's arithmetic,
-  right to left, with `Divide by 0.`); `|&` in csh and bash. `2>&1 >file` keeps the shell's order, an inner `>&2` follows an
-  outer `2>`, and an unclosed quote waits for the rest (`Unmatched ".` in csh). Machines boot with their own
+  `shift`, `$1` and backticks; on csh machines, `foreach`, `while`, `>&`, `$status`, `$#name`, `$z[2-]`, and `if`
+  and `@` with 4.3BSD's expressions: `&&`, `||`, `!`, arithmetic, `=~`, `-r` `-w` `-x` `-e` `-d` `-f` `-z` `-o` and
+  `{ command }` (right to left, with `Divide by 0.`), and `@ z[2] = 5`; `|&` in csh and bash. `2>&1 >file` keeps the shell's
+  order, an inner `>&2` follows an outer `2>`, and a quote opens anywhere in a word: an unclosed one waits for the rest
+  (`Unmatched '.` in csh). `&` prints the job's number and process id, as each shell did, and `ps` (Linux's and IRIX's too) gives
+  the same ids; an `exit`, `break` or `cd`
+  in the background leaves the shell alone. Machines boot with their own
   `== boot ==`.
 - Locked files stay locked through `mv`, `rm -r`, links and every machine's own copy commands, and
   `rm -r` and `rmdir` leave alone a folder that `su` will return to.
@@ -127,7 +131,8 @@ behind gaijin.systems.
 - An eleventh, an IBM System/370 Model 158 running VM/370 Release 6 with CMS (`vm370`, 1980), on a typewriter
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
   EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
-  Hercules. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
+  Hercules. Ctrl-C at a running EXEC is an attention: the EXEC goes on typing while the terminal reads a line
+  (`HX` ends it), through `Phosphor.aside`, output beside a pending read. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
   gives it one: it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
