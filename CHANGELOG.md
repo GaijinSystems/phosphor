@@ -82,7 +82,7 @@ behind gaijin.systems.
 - Scripts and the prompt understand `for`, `while`, `until`, `if`, `case`, `test`, `expr`, `read`,
   `shift`, `$1` and backticks; on csh machines, `foreach`, `>&`, `$status`, `$#name`, and `if`
   with `&&`, `||`, `!`, arithmetic, `=~` and `-r` `-w` `-x` `-e` `-d` `-z`; csh's `@` (4.3BSD's arithmetic,
-  right to left, with `Divide by 0.`) and `|&`. `2>&1 >file` keeps the shell's order, an inner `>&2` follows an
+  right to left, with `Divide by 0.`); `|&` in csh and bash. `2>&1 >file` keeps the shell's order, an inner `>&2` follows an
   outer `2>`, and an unclosed quote waits for the rest (`Unmatched ".` in csh). Machines boot with their own
   `== boot ==`.
 - Locked files stay locked through `mv`, `rm -r`, links and every machine's own copy commands, and
