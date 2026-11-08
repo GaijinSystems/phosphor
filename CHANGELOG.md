@@ -133,7 +133,7 @@ behind gaijin.systems.
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
   EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
   Hercules. Ctrl-C at a running EXEC is an attention: the EXEC goes on typing while the terminal reads a line,
-  losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it), through `Phosphor.aside`, output beside a pending read. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
+  losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it), through `Phosphor.aside`, output beside a pending read. CP types `!` at each attention (none with `TERMINAL ATTN OFF`); a line half typed in is cancelled and the read is up again, so an EXEC's `&READ` carries on. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
   gives it one: it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
@@ -160,6 +160,21 @@ behind gaijin.systems.
   prompt, which V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); under bash and
   csh a job that reads the terminal or wants the screen stops, as job control has it; under V7 sh it reads /dev/null, or
   ends if it wants the screen. ^C leaves background jobs alone.
+- ^Z stops the foreground job under bash and csh (`[1]+  Stopped` and bash carrying on with the rest of the line but
+  leaving any loop; csh's `Stopped`), and `jobs`, `fg`, `bg` and `kill -CONT` take it from there; vi and the other
+  full-screen programs leave the glass and come back as they were with `fg`. A loop, `if` or `case` ending in `&` runs as
+  a background job (sh and bash), shown in `jobs` as bash prints it, and `( ... )` is a subshell with its own directory,
+  variables and status, in pipes, with redirection and with `&`. A loop, `if` or `case` can be piped or redirected too
+  (`done | cat`, `while read l; do ...; done < f > g`, `fi > f`, `echo x | while read ...`), and `read` takes its
+  lines from a pipe or `<`.
+- bash's `fg` and `bg` on a job that has just ended say `job has terminated`; bash's `kill` takes the real-time signals
+  34 to 64 and `kill -l` names them; a signal other than TERM or HUP sent to a stopped job waits for it to go on, and
+  bash says again that a job is stopped when `kill %n` stops it again (csh: `Already stopped`).
+- `kill` on someone else's process says `Operation not permitted` (bash) or `Not owner` (csh, V7), `$$` is the login
+  shell's id that `ps` shows, and a signal the shell does not set aside ends it (V7's sh is ended by TERM).
+- IRIX has its own signal numbers (`USR1` 16, `STOP` 23, `TSTP` 24, `CONT` 25, new machine setting `signals: irix`).
+- A full-screen job brought back with `fg` and then killed from another job closes its screen and gives the prompt back,
+  saying `Terminated`; after ^C, V7's `wait` leaves `$?` at 0, as its sh did.
 - csh reports an error in a `while` expression at the `while` line and lists one-word aliases without ( ); bash's
   `alias r = x` fails word by word; GNU grep has `-o` and `-F`.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.

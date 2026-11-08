@@ -280,7 +280,10 @@ its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a
 Ctrl-C is the attention key. At a running EXEC it gives a read, and the EXEC goes on typing above the line being
 typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
 for CMS, or for the EXEC's `&READ`. For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside
-a pending read, their output above the line being typed.
+a pending read, their output above the line being typed. At every attention CP types an exclamation point and starts a
+new line (`TERMINAL ATTN OFF` stops that). A line half typed in when the attention comes is cancelled, as CP and
+CMS's DMSCIT did, and the read is up again: the line is not typed again, and an EXEC at its `&READ` carries on,
+taking the next line; at an empty `&READ` the attention is CMS's, so `HX` then ends it.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
 FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP. A few words from the batch side of the machine
@@ -478,7 +481,8 @@ catalog and offers all of them; with one machine in the list there is no `connec
      set besides the site's are `installed`, `user`, `homes` or `home`, `case`, `offline`,
      `shell` (`dos`, `dcl` or `bash`), `unix: no` (leave out the Unix commands), `csh`, `perror`,
      `login`, `login prompt`, `login failed`, `root login`, `root prompt`, `root password`, `also root`,
-     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns` and `disk full`; the
+     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns`, `disk full` and `signals`
+     (`irix`: IRIX's signal numbers for csh's `kill`); the
      machines between them use each one, so look there for an example. `root login` (normally
      `root`) with `root password` is an account that logs in as the super-user, at the `root prompt`
      (normally `# `), and the Unix machines' `su` takes the same password; at the login prompt it
