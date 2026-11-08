@@ -69,7 +69,7 @@ behind gaijin.systems.
 - VMS runs the games in `[GAMES]`: Adventure, Conquest, Empire, Monster, Moria and Star Trek.
   Moria and Conquest keep their sites' play hours, by the visitor's clock. Moria's help is VMS HELP on its
   own help library, recovered from the damaged copy of MORIAHLP.HLB that survives, with its blank lines placed
-  as in Moria UB 5.00's MORIAHLP.HLP.
+  as in Moria UB 5.00's MORIAHLP.HLP, where it has the topic.
 - DOS and CP/M run the real Zork I and II on a Z-machine interpreter, and keep some of its replies
   at the prompt. DOS has Zork III too; CP/M, set up before it came out in 1982, does not.
 - Games load the first time they run. Each machine's `later.js` names its games and holds their
@@ -133,7 +133,7 @@ behind gaijin.systems.
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
   EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
   Hercules. Ctrl-C at a running EXEC is an attention: the EXEC goes on typing while the terminal reads a line,
-  losing none of the lines it had worked out ahead (`HX` ends it), through `Phosphor.aside`, output beside a pending read. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
+  losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it), through `Phosphor.aside`, output beside a pending read. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
   gives it one: it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
@@ -157,8 +157,9 @@ behind gaijin.systems.
   TOPS-20's `LOGIN` now says `?Incorrect password`, as the 6.1 EXEC does.
 - A command started with `&` really runs in the background: the prompt comes back at once, `ps` lists it until it
   ends, its output arrives while you type, and bash and csh say `Done`, `Exit N` or `Terminated` before the next
-  prompt, as V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); a job that
-  reads the terminal or wants the screen stops, as with job control it does. ^C leaves background jobs alone.
+  prompt, which V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); under bash and
+  csh a job that reads the terminal or wants the screen stops, as job control has it; under V7 sh it reads /dev/null, or
+  ends if it wants the screen. ^C leaves background jobs alone.
 - csh reports an error in a `while` expression at the `while` line and lists one-word aliases without ( ); bash's
   `alias r = x` fails word by word; GNU grep has `-o` and `-F`.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
