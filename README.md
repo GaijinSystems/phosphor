@@ -175,19 +175,18 @@ machine's:": `about`, `mail`, `source`, `sound`, `fill`, `effects`, `connect` an
 for them, so a file of the same name never takes their place.
 
 The shell understands pipes, redirection, here-documents, quotes, variables, wildcards and scripts (and bash's
-arithmetic and arrays). Visitors can make files in their
-home folder and `/tmp`, and change or remove the ones they made. The files the site gives (your `== file: ==` sections,
-and the home files each machine ships, such as `.profile` or `LOGIN.COM`) and the system's files are someone else's:
-visitors can read and copy them, but writing to one, removing, renaming or `chmod`-ing it is refused in the machine's
-own words (`cannot create` and `not removed` on V7, `Permission denied` on 4.3BSD, IRIX and Debian, `-RMS-E-PRV` on VMS,
-`?Delete access required` on TOPS-20), and `ls -l` shows them as the site owner's (`{owner}`) or root's. On MS-DOS and
-CP/M, which have no owners, they carry the read-only attribute instead (`ATTRIB` shows `R`, `STAT` shows `R/O`), and
-`Access denied`, `File creation error` and `Bdos Err On A: File R/O` refuse them, but as on the real thing anyone may
-take it off with `ATTRIB -R NAME` or `STAT NAME $R/W`. The machine's privileged user (`root` after `su` on the Unix
-machines, `SYSTEM` on VMS, an `ENABLE`d `OPERATOR` on TOPS-20) can change, overwrite or remove anything: root can break
-things. What visitors change is kept in their browser (see [Saves](#saves)) unless `persist: no` is set, in which case a
-reload puts everything back. A file holds at most 4 MB; past that, the write stops and the machine says its disk is
-full.
+arithmetic and arrays). Visitors can make files in their home folder and `/tmp`, and change or remove the ones they
+made. The files the site gives (your `== file: ==` sections, and the home files each machine ships, such as `.profile`
+or `LOGIN.COM`) and the system's files are someone else's: visitors can read and copy them, but writing to one,
+removing, renaming or `chmod`-ing it is refused in the machine's own words (`cannot create` and `not removed` on V7,
+`Permission denied` on 4.3BSD, IRIX and Debian, `-RMS-E-PRV` on VMS, `?Delete access required` on TOPS-20), and `ls -l`
+shows them as the site owner's (`{owner}`) or root's. On MS-DOS and CP/M, which have no owners, they carry the read-only
+attribute instead (`ATTRIB` shows `R`, `STAT` shows `R/O`), and `Access denied`, `File creation error` and
+`Bdos Err On A: File R/O` refuse them, but as on the real thing anyone may take it off with `ATTRIB -R NAME` or
+`STAT NAME $R/W`. The machine's privileged user (`root` after `su` on the Unix machines, `SYSTEM` on VMS, an `ENABLE`d
+`OPERATOR` on TOPS-20) can change, overwrite or remove anything: root can break things. What visitors change is kept in
+their browser (see [Saves](#saves)) unless `persist: no` is set, in which case a reload puts everything back. A file
+holds at most 4 MB; past that, the write stops and the machine says its disk is full.
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
 something else to GNU's tools, the usage line is `ls --help`. The Linux machine's bash also
@@ -340,7 +339,8 @@ read up again, with no ready message of its own (a line CMS had taken from the s
 Another attention at that read only puts it up again. `LOGOFF`, `IPL` or `SYSTEM RESET` typed there, or done by an EXEC
 running beside it, ends all that was going on beside it once CP has typed what it says. `DISCONN` keeps the virtual
 machine: what it was doing runs on unseen (its output is lost, as on VM/370 without a spooled console), and a `LOGON`
-within 15 minutes reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on.
+within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
+counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on.
 For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
 the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
 leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and what the
@@ -797,27 +797,28 @@ wall lines, comments and door games under `phosphor-9/bbs/`.
 On the other machines (V7, 4.3BSD, IRIX, Debian, MS-DOS, CP/M, VMS and TOPS-20), what changed in the files is kept under
 `phosphor-9/` and the machine's id, `phosphor-9/v7/files`, `phosphor-9/linux/files` and so on; a site that is not at the
 top of its web address adds its folder (`phosphor-9/v7/files:/mysite/` for `https://example.github.io/mysite/`), so
-sites that share one address keep apart. What is kept: what the visitor made, changed or removed in their home folder
+sites that share one host keep apart. What is kept: what the visitor made, changed or removed in their home folder
 (or anywhere on the disk on MS-DOS and CP/M), and what root changed anywhere, system files included. A second name made
-with `ln` comes back as a link to the same file, and a moved file keeps what its old place gave it: a moved story file
-still plays, a moved device is still a device, and a file whose text is made as it is read (`/etc/passwd` and the like)
-still makes it, unless root wrote new text into it. `/tmp` is not kept: a reload is a reboot, and each of these systems
-emptied `/tmp` when it booted. Only the changes are kept, each with a note of what the file was when it booted, so when
-you change a file in `site/` (or a new release changes a system file) a visitor's copy of that file is dropped and your
-new version shows; their other changes stay. To start a machine over, clear the site's data in the browser;
-`persist: no` stops the keeping (what a browser has kept stays there, unused). Each machine keeps at most 256K
-characters, so the other machines and the games keep their room in the browser's storage (about 5 MB for each web
-address). When the changes outgrow that, or the browser's storage is full, the largest changed files are left out (they
-stay for the visit, and the rest is kept), and the machine says its disk is full in its own words (`no space on dev 6/0`
-on V7, `write error: No space left on device` on 4.3BSD, IRIX and Debian, `Insufficient disk space` on MS-DOS,
-`DISK WRITE ERROR` on CP/M, `%SYSTEM-F-EXDISKQUOTA` on VMS, `?Quota exceeded` on TOPS-20), once each time another file
-is left out; removing files says nothing. What the full browser left out is kept at the next prompt that finds room.
-When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
-what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), and
-a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error` in BASIC, `* * ERROR 18 * *`
-at TRSDOS); the Apple's `SAVE`, `BSAVE`, `OPEN` of a new text file and the `CLOSE` after a `WRITE` say `DISK FULL`, and
-its `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR`; and on the C128 `DSAVE` ends as usual but the drive
-status, `DS$`, says `72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
+with `ln` is kept as a link to the same file and comes back as one after a reload, and a moved file keeps what its old
+place gave it: a moved story file still plays, a moved device is still a device, and a file whose text is made as it is
+read (`/etc/passwd` and the like) still makes it, unless root wrote new text into it. `/tmp` is not kept: a reload is a
+reboot, and each of these systems emptied `/tmp` when it booted. Only the changes are kept, each with a note of what the
+file was when it booted, so when you change a file in `site/` (or a new release changes a system file) a visitor's copy
+of that file is dropped and your new version shows; their other changes stay. To start a machine over, clear the site's
+data in the browser; `persist: no` stops the keeping (what a browser has kept stays there, unused). Each machine keeps
+at most 256K characters, so the other machines and the games keep their room in the browser's storage (about 5 MB for
+each web address). When the changes outgrow that, or the browser's storage is full, the largest changed files are left
+out (they stay for the visit, and the rest is kept), and the machine says its disk is full in its own words
+(`no space on dev 6/0` on V7, `write error: No space left on device` on 4.3BSD, IRIX and Debian,
+`Insufficient disk space` on MS-DOS, `DISK WRITE ERROR` on CP/M, `%SYSTEM-F-EXDISKQUOTA` on VMS, `?Quota exceeded` on
+TOPS-20), once each time another file is left out; removing files says nothing. What the full browser left out is kept
+at the next prompt that finds room. When the browser has no room left, the disks of the TRS-80, the Apple IIe and the
+C128 fail as a full disk did, and what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`,
+that it is out of memory), and a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error`
+in BASIC, `* * ERROR 18 * *` at TRSDOS); the Apple's `SAVE`, `BSAVE`, `OPEN` of a new text file and the `CLOSE` after a
+`WRITE` say `DISK FULL`, and its `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR`; and on the C128
+`DSAVE` ends as usual but the drive status, `DS$`, says `72,DISK FULL,36,00`. A browser that keeps nothing at all still
+has the disk for the rest of the visit.
 
 ### Switching a game off
 

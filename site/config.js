@@ -44,8 +44,8 @@ sound:     on
 # Visitors can switch with the effects command.
 effects:   auto
 
-# yes = the V7 machine offers a teletype command: each visitor can put a Teletype Model 33
-# in place of the screen (off until they turn it on). The other machines ignore it.
+# yes = the V7 machine offers a teletype command: each visitor can have the V7 machine print
+# as a Teletype Model 33 would (off until they turn it on). The other machines ignore it.
 teletype:  yes
 
 # Where the source command sends people. The licence (GNU AGPL) asks that anyone using

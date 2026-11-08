@@ -40,9 +40,9 @@ behind gaijin.systems.
   comments, and shell scripts (`sh file`, or `chmod +x` and `./file`). Each command on a line runs
   after the one before has finished, and its backticks and variables are worked out when its turn
   comes.
-- The file system can be written for the session: `>`, `touch`, `mkdir`, `cp`, `mv`, `rm`.
-  Unless `persist: no` is set, a visitor's changes are kept for their next visit (see below). A file holds up to 4 MB; past that, the machine says its disk is full.
-  `cat` and friends read the keyboard until Ctrl-D.
+- The file system can be written: `>`, `touch`, `mkdir`, `cp`, `mv`, `rm`. Unless `persist: no` is set, a visitor's
+  changes are kept for their next visit (see below). A file holds up to 4 MB; past that, the machine says its disk is
+  full. `cat` and friends read the keyboard until Ctrl-D.
 - `ed`, the standard editor, with its addresses, regular expressions and `?`.
 - `vi`, the visual editor, on the machines that had it, drawn on the glass.
 - Colossal Cave, the 350-point version, on the 4.3BSD machine: `adventure`, in `/usr/games`, with
@@ -97,9 +97,10 @@ behind gaijin.systems.
   one. The site's files and the system's are read-only to the guest, refused in each machine's words; root (`SYSTEM`,
   an enabled `OPERATOR`) can change or remove them. MS-DOS and CP/M mark them read-only instead, and `ATTRIB -R` and
   `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder. A second name
-  made with `ln` comes back as a link, and a moved file keeps what made it work (a story file, a device). Each
-  machine keeps at most 256K characters; what does not fit is left out, largest first, and the disk is said to be
-  full once for it. A site keeps its own saves when others share its web address.
+  made with `ln` is kept as a link and comes back as one after a reload, and a moved file keeps what made it work (a
+  story file, a device). Each machine keeps at most 256K characters; what does not fit is left out, largest first,
+  and the disk is said to be full once for it. A site keeps its own saves when other sites share its host
+  (`https://example.github.io/`).
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
 - `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
   off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
@@ -158,7 +159,8 @@ behind gaijin.systems.
   its own (a line CMS had taken from the stack but not yet begun runs then). Another attention at that read only puts
   it up again; `LOGOFF`, `IPL` or `SYSTEM RESET` there, or in an EXEC running beside it, ends all that was going on
   beside it once CP has typed what it says, and `DISCONN` keeps the virtual machine running unseen, for a `LOGON`
-  within 15 minutes to reconnect to (`RECONNECTED AT`, in CP mode until `BEGIN`). This uses `Phosphor.aside`, which
+  within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
+  counts from DISCONN) to reconnect to (`RECONNECTED AT`, in CP mode until `BEGIN`). This uses `Phosphor.aside`, which
   runs output beside a pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF` neither that nor a new
   line: the read goes on in the same line, after any output the attention cut short, and what the command or EXEC
   types meanwhile comes below that line, where the carriage stayed, through a new `Phosphor.onInterrupt` answer,
@@ -258,14 +260,16 @@ behind gaijin.systems.
   than one and ends with status 2 when it could not open one: V7's stops there, the others go on; GNU's `-q` prints
   nothing and makes it 0 after a match, its `-s` and System V's (IRIX) leave out the messages, and V7's and 4.3BSD's
   `-s` print nothing but the messages.
-- bash has `time` (with `-p`) and `!` before a pipeline, and `x=(1 2)` and `declare`, `typeset`, `readonly` and `local`
-  take a `( )` list (here `$x` is its first element). An alias is not expanded again inside its own text
-  (`alias g='{ g; }'` says `g: command not found`), and a command not found leaves 127 in bash; an `if` that ran no
-  branch leaves 0 there. A `)` that closes nothing is a syntax error (`Too many )'s.` in csh). A quote over several
-  lines of a typed `for` or `while` is read whole before it is checked, a script stops before a command whose quote
-  began on an earlier line, and a here-document's word (`<<'EOF'`, `<<"EOF"`) no longer hides the lines after it from
-  the check. GNU grep reads `-` as its input; `wc` of a directory on V7, 4.3BSD and IRIX counts its entries' bytes, as
-  their `wc` read them. `x=1` on CP/M and MS-DOS is a command like any other (`X=1?`, `Bad command or file name`).
+- bash has `time` (with `-p`) and `!` before a pipeline, and `x=(1 2)` and `declare`, `typeset` and `readonly` take a
+  `( )` list (here `$x` is its first element; `local`, with no functions here, says it needs one, as bash does). An
+  alias is not expanded again inside its own text (`alias g='{ g; }'` says `g: command not found`), and a command not
+  found leaves 127 in bash; an `if` that ran no branch leaves 0 there. A `)` that closes nothing is a syntax error
+  (`Too many )'s.` in csh). A quote over several lines of a typed `for` or `while` is read whole before it is checked, a
+  script is checked for syntax errors a whole command at a time, including one whose quote runs over several lines,
+  before that command runs, and a here-document's word (`<<'EOF'`, `<<"EOF"`) no longer hides the lines after it from
+  the check. GNU grep reads `-` as its input; `wc` of a directory on V7, 4.3BSD and IRIX counts the bytes of its raw
+  entries (16 to an entry, V7's layout; 4.3BSD's and IRIX's real layouts differ). `x=1` on CP/M and MS-DOS is a command
+  like any other (`X=1?`, `Bad command or file name`).
 - Here-documents in all three shells: `<<EOF` in bash and V7 sh (bash also `<<-EOF`, which drops the tabs before each
   line; V7 reads `-EOF` as the word) and `<< word` in csh, typed after the shell's `>` prompt (csh's `heredoc` reads
   them with none) or in a script, with pipes, redirection, loops and `&`. A quote in the word keeps the lines as they
@@ -278,7 +282,7 @@ behind gaijin.systems.
   word each in `"${x[@]}"`), `${#x[@]}`, `${!x[@]}`, `${#x}`, `unset 'x[1]'`, `declare -a`, `declare -A` (its keys in
   bash's own order) and `declare -p`.
 - `x = 1` and `x=1` on VM/370, Multics and TOPS-20 are lines like any other for the machine to answer; only VMS takes
-  them as a symbol without a word. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
+  them as a symbol assignment. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
   blanks and all.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
 - The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.
