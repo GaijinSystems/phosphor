@@ -132,9 +132,14 @@ behind gaijin.systems.
 - An eleventh, an IBM System/370 Model 158 running VM/370 Release 6 with CMS (`vm370`, 1980), on a typewriter
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
   EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
-  Hercules. Ctrl-C at a running EXEC is an attention: the EXEC goes on typing while the terminal reads a line,
-  losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it), through `Phosphor.aside`, output beside a pending read. CP types `!` at each attention (none with `TERMINAL ATTN OFF`); a line half typed in is cancelled and the read is up again, so an EXEC's `&READ` carries on. A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer
-  gives it one: it has no prompt, as the typewriter terminal had none.
+  Hercules. Ctrl-C at a running CMS command or EXEC is an attention: it goes on typing while the terminal reads a
+  line, losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT`
+  stops the typing, and any other line is stacked for CMS); this uses `Phosphor.aside`, which runs output beside a
+  pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF` neither that nor a new line: the read goes
+  on in the same line, through a new `Phosphor.onInterrupt` answer, `{says, same: true}`); a line half typed in is
+  cancelled and the read is up again, so an EXEC's `&READ` and the editor carry on, and at an empty read the
+  attention is CMS's (`HX` ends the EXEC or the edit). A machine can now answer an empty line itself (`Phosphor.blank`). A
+  site's `prompt:` no longer gives it one: it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
   with `BREAK` held at power-on, `CSAVE`/`CLOAD` to a cassette kept in the browser, `SYSTEM`, Zork I and II,
@@ -160,21 +165,30 @@ behind gaijin.systems.
   prompt, which V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); under bash and
   csh a job that reads the terminal or wants the screen stops, as job control has it; under V7 sh it reads /dev/null, or
   ends if it wants the screen. ^C leaves background jobs alone.
-- ^Z stops the foreground job under bash and csh (`[1]+  Stopped` and bash carrying on with the rest of the line but
-  leaving any loop; csh's `Stopped`), and `jobs`, `fg`, `bg` and `kill -CONT` take it from there; vi and the other
-  full-screen programs leave the glass and come back as they were with `fg`. A loop, `if` or `case` ending in `&` runs as
-  a background job (sh and bash), shown in `jobs` as bash prints it, and `( ... )` is a subshell with its own directory,
-  variables and status, in pipes, with redirection and with `&`. A loop, `if` or `case` can be piped or redirected too
-  (`done | cat`, `while read l; do ...; done < f > g`, `fi > f`, `echo x | while read ...`), and `read` takes its
-  lines from a pipe or `<`.
+- ^Z stops the foreground job under bash and csh: bash says `[1]+  Stopped` and goes on with the rest of the line,
+  leaving any loop it was in; csh says `Stopped` and drops the rest of the line. `jobs`, `fg`, `bg` and `kill -CONT`
+  take it from there; vi and the other full-screen programs leave the glass and come back as they were with `fg`. At
+  the shell's own `read`, bash's tty echoes the ^Z and the read goes on. A loop, `if` or `case` ending in `&` runs as
+  a background job (sh and bash; bash's `jobs` shows it as bash prints it), and `( ... )` is a subshell with its own
+  directory, variables and status (starting with the shell's `$?`), in pipes, with redirection and with `&`; `jobs`
+  spaces out a `( ... )` inside one too. A loop, `if` or `case` can be piped or redirected too (sh and bash:
+  `done | cat`, `while read l; do ...; done < f > g`, `fi > f`, `echo x | while read ...`), and `read` takes its
+  lines from a pipe or `<`, setting its names to nothing at the end of them. Each command of a pipe is its own
+  process, so a loop, `read`, `cd` or `x=1` in one leaves the shell as it was (csh runs one of its own commands at
+  the end of a pipe in the shell itself); the commands inside a read loop read from its input too; a loop writing to
+  `head` or `read` ends once they have read what they want, as SIGPIPE ends it (any loop, once a pipe holds 65536 of
+  its lines).
 - bash's `fg` and `bg` on a job that has just ended say `job has terminated`; bash's `kill` takes the real-time signals
-  34 to 64 and `kill -l` names them; a signal other than TERM or HUP sent to a stopped job waits for it to go on, and
-  bash says again that a job is stopped when `kill %n` stops it again (csh: `Already stopped`).
+  34 to 64 and `kill -l` names them; a signal sent to a stopped job waits for it to go on, except KILL, and TERM and HUP
+  sent by `kill %n` or csh's `kill`, which follow them with CONT; bash says again that a job is stopped when `kill %n`
+  signals it, so a stopped job it ends shows as stopped first and as ended at the prompt after (csh: `kill -STOP` on
+  one says `Already stopped`).
 - `kill` on someone else's process says `Operation not permitted` (bash) or `Not owner` (csh, V7), `$$` is the login
-  shell's id that `ps` shows, and a signal the shell does not set aside ends it (V7's sh is ended by TERM).
+  shell's id that `ps` shows (in a `( ... )` too), and a signal the shell does not set aside ends it (all three set TERM
+  aside: V7's sh sets TERM and QUIT aside and catches INT).
 - IRIX has its own signal numbers (`USR1` 16, `STOP` 23, `TSTP` 24, `CONT` 25, new machine setting `signals: irix`).
 - A full-screen job brought back with `fg` and then killed from another job closes its screen and gives the prompt back,
-  saying `Terminated`; after ^C, V7's `wait` leaves `$?` at 0, as its sh did.
+  saying why (`Terminated`, `Killed`, ...); after ^C, V7's `wait` leaves `$?` at 0, as its sh did.
 - csh reports an error in a `while` expression at the `while` line and lists one-word aliases without ( ); bash's
   `alias r = x` fails word by word; GNU grep has `-o` and `-F`.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.

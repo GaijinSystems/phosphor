@@ -277,13 +277,16 @@ machine. CMSBATCH, the batch machine, sits disconnected with the password BATCH,
 OPERATOR's password is there too, but the operator is logged on at the console. Only MAINT opens the locked files.
 The empty line is the machine's:
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
-Ctrl-C is the attention key. At a running EXEC it gives a read, and the EXEC goes on typing above the line being
-typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
-for CMS, or for the EXEC's `&READ`. For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside
-a pending read, their output above the line being typed. At every attention CP types an exclamation point and starts a
-new line (`TERMINAL ATTN OFF` stops that). A line half typed in when the attention comes is cancelled, as CP and
-CMS's DMSCIT did, and the read is up again: the line is not typed again, and an EXEC at its `&READ` carries on,
-taking the next line; at an empty `&READ` the attention is CMS's, so `HX` then ends it.
+Ctrl-C is the attention key. At a running CMS command or EXEC it gives a read, and the command goes on typing above
+the line being typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the
+attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
+for CMS to read once the command is done, or for the command's own read. For this `cms.js` uses `Phosphor.aside`,
+which runs a machine's own steps beside a pending read, their output above the line being typed. At every attention
+CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF` leaves out both, so the next read goes on
+in the same line: `cms.js` has `Phosphor.onInterrupt` answer `{says: '', same: true}`). A line
+half typed in when the attention comes is cancelled (CP signals it, and CMS's DMSCIT throws the line away and reads
+again): the line is not typed again, and an EXEC at its `&READ`, or the editor, carries on, taking the next line; at
+an empty read the attention is CMS's, so `HX` then ends the EXEC or the edit.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
 FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP. A few words from the batch side of the machine
@@ -318,7 +321,8 @@ directory is kept in the browser (see [Saves](#saves)), up to the guest's quota 
 write says `Record quota overflow.` `Repair.SysAdmin` is the privileged account that reads and changes nearly
 everything: `login Repair` takes the `root password:` in `machines/multics-1981/machine.js` (with
 `root login: repair`), and the operators left it in an exec_com anyone may print. QUIT is the machine's: its
-`commands.js` sets `Phosphor.onInterrupt`, which the engine calls on Ctrl-C and whose answer it shows instead of `^C`.
+`commands.js` sets `Phosphor.onInterrupt`, which the engine calls on Ctrl-C and whose answer it shows instead of `^C`
+(an answer `{says, same: true}` also keeps the next prompt or read in the same line).
 
 The messages and formats were checked against Multics MR12.8 running under the DPS8M simulator, and against the
 MR8.0 manuals where the two differ: the 1980 banner, `Segment foo not found.`, `You are protected from preemption
