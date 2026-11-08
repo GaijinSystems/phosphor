@@ -89,10 +89,20 @@ behind gaijin.systems.
   (`Unmatched '.` in csh). `&` prints the job's number and process id, as each shell did, and `ps &` (Linux's and IRIX's too)
   shows itself with that id; an `exit`, `break` or `cd`
   in the background leaves the shell alone. Machines boot with their own
-  `== boot ==`.
+  `== boot ==`, and a site's `== boot: linux, bsd ==` gives the machines it names a boot of their own.
 - Locked files stay locked through `mv`, `rm -r`, links and every machine's own copy commands, and
   `rm -r` and `rmdir` leave alone a folder that `su` will return to.
+- What visitors do to the files on V7, 4.3BSD, IRIX, Debian, MS-DOS, CP/M, VMS and TOPS-20 is kept in their browser
+  and is there at their next visit (`persist: no` turns this off): the guest's own files, and whatever root changed,
+  anywhere. `/tmp` starts empty, as at a boot. When the site changes a file, a visitor's copy of it gives way to the new
+  one. The site's files and the system's are read-only to the guest, refused in each machine's words; root (`SYSTEM`,
+  an enabled `OPERATOR`) can change or remove them. MS-DOS and CP/M mark them read-only instead, and `ATTRIB -R` and
+  `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder.
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
+- `teletype: yes` (off unless set) gives the V7 machine a `teletype on|off` command, off until the visitor turns it on and
+  remembered in their browser, that puts a Teletype Model 33 on the machine: ten characters a second with the
+  carriage's time at each line end, capitals only through V7's `lcase` mapping (`\!` for a pipe), `#` and `@` to
+  erase, the clack, carriage return and bell made in the browser, and `stty` that reports and switches `lcase`.
 - File names, commands and aliases follow the machine's `case:` setting; Unix is case-sensitive.
 - Glow colours follow `--phos-rgb`, `--dim-rgb` and `--err-rgb`, so a theme recolours the
   whole tube, and the amber example is one line.

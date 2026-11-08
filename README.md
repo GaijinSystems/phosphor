@@ -98,10 +98,12 @@ At the top of a file, before its first `== section ==`, one per line:
 | `uppercase:` | `yes` prints everything in capitals, like an uppercase-only teletype; `no` does not. Without this line, `yes`. |
 | `prompt:` | The shell prompt, normally `$ `. Use quotes to keep a trailing space: `prompt: "% "`. It replaces the prompt on V7, 4.3BSD and VMS; the other machines make their own. |
 | `sound:` | `on`: keyclicks from the first tap or keypress. `off`: silent until `sound on`. |
+| `teletype:` | `yes` offers visitors of the V7 machine a Teletype Model 33 instead of the video terminal, with the `teletype` command (`teletype on`, `teletype off`; off until they turn it on, and their browser remembers): paper speed, capitals only and its sounds; see [Version 7 Unix](#version-7-unix). The other machines ignore it and have no `teletype` command. Without this line, `no`. |
 | `effects:` | `auto` (the default), `full` or `lite`; see [Looks](#looks). A visitor's own choice with the `effects` command wins in their browser. |
 | `source:` | Where the `source` command points. Must start with `http://` or `https://`. See [Licence](#licence). |
 | `commands:` | Switch commands off or on: `commands: -ping, -sudo`. Works on the built-in commands, the machine's (`-sudo`) and the games (`-rogue`); see [Switching a game off](#switching-a-game-off). Without the `-`, it switches back on one the machine has switched off (`commands: vi`). Your own `== command: ==` sections are never switched off, so delete those instead. |
 | `protected:` | Locked files and folders: listed (by `ls`, `DIR` and the like), but they will not open, and each machine says so in its own words: `cat: can't open secrets` on V7, `secrets: Permission denied` on 4.3BSD, `cat: secrets: Permission denied` on Debian, `-RMS-E-PRV` on VMS, `Access denied` on MS-DOS. Paths work (`.trash/core`); a trailing `/` makes a locked folder. |
+| `persist:` | `yes` (the default) keeps what visitors do to the files in their browser, so their next visit finds it; see [Saves](#saves). `no`: a reload puts every file back as the site gave it. |
 | `machine:` `machines:` | Which machine the terminal starts on, and which ones the `connect` command offers: `machines: v7, bsd`. Unset, the first and all of them. With one machine there is no `connect`. `machine: random` picks one of the allowed machines when the address doesn't name one, and keeps that pick for the rest of the browser tab, so a reload boots the same machine and a new tab picks again. The Commodore 128 and the bulletin board sit out the draw: give a machine `random:false` in `machines/machines.js` to leave it out the same way. The address, `connect` and these settings still reach it, and if only such machines are allowed, random picks among them. |
 | `hostname:` | The machine's name. Normally taken from your domain (`example.com` becomes `example`). |
 | `year:` | One year for every machine, its clock and `{year}`, in place of each machine's own (Debian's too, which otherwise takes the visitor's). Best left unset. |
@@ -129,6 +131,7 @@ A line like `== welcome ==` starts a section; the lines after it are printed as 
 | `== command: NAME \| HELP ==` | A new command that prints the section. `NAME, OTHER` gives it two names. Without help text it is hidden from `help`. It replaces a built-in of the same name, except the core ones (`help`, `man`, `clear`, `ls`, `cat`, `sound`, `cd`, `pwd`, `echo`, `mail`, `alias`, `source`): switch one of those off first (`commands: -mail`) and yours takes its place. |
 | `== man: NAME ==` | The description part of a manual page. Replaces a built-in page or adds a new one. |
 | `== boot ==` | A machine coming up after power-on, a line at a time; `text @300` waits 300 ms after the line. |
+| `== boot: ID ==` | The boot for the machines named, by the ids `machine:` and `machines:` use: `== boot: linux, bsd ==`. On those machines it wins over a plain `== boot ==`, wherever each one is. An id no machine has is named on the glass at start. |
 | `== aliases ==` | Shortcuts, one per line: `ll = ls -l`, or `cl = clear ; ls`. Only useful on a machine whose shell had aliases; the 1979 machine has none. |
 | `== board ==` | The bulletin board's settings, one per line: `name:` (Afterglow BBS), `number:` (555-0142), `sysop:` ({owner}), `node:` (1, the node number in the box a caller sees first) and `password:` (the sysop's). Unset, the defaults in brackets. |
 
@@ -160,7 +163,7 @@ a little extra space between them.
 `help` lists what a visitor needs to get around, including `fill`, which puts the cable
 away and makes the monitor, bezel and all, as big as the window allows (`fill` again puts it back; the browser remembers),
 and `effects`, which shows or switches the tube effects (`effects lite`, `full` or `auto`; see
-[Looks](#looks)).
+[Looks](#looks)). Where the site offers it (`teletype: yes`), the V7 machine's `help` also lists `teletype`.
 Behind it, each machine has the commands
 its real system had, and no others apart from the terminal's own: on the
 1979 machine there is no `vi`, and `whoami` is `who am i`. Explore; you know if you know.
@@ -172,7 +175,17 @@ machine's:": `about`, `mail`, `source`, `sound`, `fill`, `effects`, `connect` an
 for them, so a file of the same name never takes their place.
 
 The shell understands pipes, redirection, quotes, variables, wildcards and scripts. Visitors
-can change files in their home folder and `/tmp`, and a reload puts everything back. A file holds
+can make files in their home folder and `/tmp`, and change or remove the ones they made. The files the site gives
+(your `== file: ==` sections, and the home files each machine ships, such as `.profile` or `LOGIN.COM`) and the
+system's files are someone else's: visitors can read and copy them, but writing to one, removing, renaming or
+`chmod`-ing it is refused in the machine's own words (`cannot create` and `not removed` on V7, `Permission denied`
+on 4.3BSD, IRIX and Debian, `-RMS-E-PRV` on VMS, `?Delete access required` on TOPS-20), and `ls -l` shows them as
+yours or root's. On MS-DOS and CP/M, which have no owners, they carry the read-only attribute instead (`ATTRIB`
+shows `R`, `STAT` shows `R/O`), and `Access denied`, `File creation error` and `BDOS ERR ON A: FILE R/O` refuse
+them, but as on the real thing anyone may take it off with `ATTRIB -R NAME` or `STAT NAME $R/W`. The machine's
+privileged user (`root` after `su` on the Unix machines, `SYSTEM` on VMS, an `ENABLE`d `OPERATOR` on TOPS-20) can
+change, overwrite or remove anything: root can break things. What visitors change is kept in their browser (see
+[Saves](#saves)) unless `persist: no` is set, in which case a reload puts everything back. A file holds
 at most 4 MB; past that, the write stops and the machine says its disk is full.
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
@@ -219,6 +232,29 @@ the sudoers file, so `sudo` and `apt install` say no, as they would. `su` (or `s
 Each folder's `machine.js` holds its settings and text (the
 self-test, the boot log, `dmesg`, the `ps` table), `fs.js` builds its system folders, and
 `later.js`, where it has one, names its games.
+
+### Version 7 Unix
+
+With `teletype: yes` in `site/config.js` the V7 machine has a `teletype` command: `teletype on` puts the visitor on a
+Teletype Model 33 ASR, as the machine's console was, `teletype off` goes back to the glass, and `teletype` alone says
+which is in use. It is off until the visitor turns it on; their browser remembers the choice, as it does `effects`.
+The other machines, and V7 without the setting, have no such command. The teletype is set up the way V7's `getty` set the console teletype (`stty` says `speed 110 baud`, `erase = '#'; kill = '@'`,
+`even odd -nl echo lcase -tabs cr1`):
+
+- It prints ten characters a second (110 baud with two stop bits), and every line ends with a carriage return
+  and a line feed, with the five clock ticks V7 waited for the carriage (`cr1`, which `stty tty33` sets). Ctrl-S stops
+  the printer and Ctrl-Q, or any other key, starts it again; Ctrl-C (or Delete, the teletype's RUB OUT) stops the output.
+- Capitals only. The keyboard has no small letters and no `` ` { | } ~ `` keys; with V7's `lcase` the capitals it sends
+  are taken as small letters, a capital is typed as `\A`, and `` ` { | } ~ `` are typed and printed as `\'`, `\(`,
+  `\!`, `\)` and `\^` (so a pipe is `\!`). Small letters print as capitals. `stty -lcase` turns this off, after which
+  `ECHO` is not `echo`, and there is no small letter to type `stty lcase` with: log out, and the login turns it on again.
+- There is no backspace: `#` erases the character before it and `@` the whole line, as V7 did; Backspace types a
+  `#`. They are printed, not rubbed out, as on paper; `\#` and `\@` are the characters themselves.
+- With the sound on, every character clacks, the carriage thunks back and Ctrl-G or a BEL rings the bell, all made in the
+  browser and silent until the visitor's first tap or key. There is no self-test (a teletype has none), and logging
+  out leaves the paper as it is.
+
+It keeps the glass, its glow and the monitor around it: the look of the whole page is the video terminal's.
 
 ### TOPS-20
 
@@ -745,6 +781,18 @@ VM/370's A-disk, what the guest wrote, renamed or erased on it, is kept under `p
 Multics guest's home directory under `phosphor-9/multics/home`: only what the guest made, changed or deleted, so the
 site's own files come back fresh, with any changes laid over them. The bulletin board keeps its callers, posts,
 wall lines, comments and door games under `phosphor-9/bbs/`.
+On the other machines (V7, 4.3BSD, IRIX, Debian, MS-DOS, CP/M, VMS and TOPS-20), what changed in the files is kept
+under `phosphor-9/` and the machine's id, `phosphor-9/v7/files`, `phosphor-9/linux/files` and so on: what the visitor
+made, changed or removed in their home folder (or anywhere on the disk on MS-DOS and CP/M), and what root changed
+anywhere, system files included. `/tmp` is not kept: a reload is a reboot, and each of these systems emptied `/tmp`
+when it booted. Only the changes are kept, each with a note of what the file was when it booted, so when you change a
+file in `site/` (or a new release changes a system file) a visitor's copy of that file is dropped and your new version
+shows; their other changes stay. To start a machine over, clear the site's data in the browser; `persist: no` stops
+the keeping (what a browser has kept stays there, unused). When the browser's storage is full, the change stays for
+the visit, and the machine says its disk is full, once, in its own words (`no space on dev 6/0` on V7,
+`write error: No space left on device` on 4.3BSD, IRIX and Debian, `Insufficient disk space` on MS-DOS,
+`DISK WRITE ERROR` on CP/M, `%SYSTEM-F-EXDISKQUOTA` on VMS, `?Quota exceeded` on TOPS-20); it is kept at the next
+prompt that finds room.
 When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
 what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), and
 a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error` in BASIC, `* * ERROR 18 * *`
@@ -874,8 +922,8 @@ sends small `HEAD` requests for the page to your own server and times the answer
 off with `commands: -ping` if you would rather it did not.
 
 Games that kept a save or a score file in their day keep them in the visitor's own browser
-(`localStorage`; see [Saves](#saves)), as do the disks of the Apple IIe, the TRS-80 and the C128 and the guest's files on VM/370 and
-Multics. The bulletin board keeps the handle a caller picks, and what they post, there too. The `fill` and `effects` commands remember their settings there as well, and `machine: random`
+(`localStorage`; see [Saves](#saves)), as do the disks of the Apple IIe, the TRS-80 and the C128, the guest's files on VM/370 and
+Multics, and, unless `persist: no` is set, what visitors change in the files of the other machines. The bulletin board keeps the handle a caller picks, and what they post, there too. The `fill` and `effects` commands remember their settings there as well, and `machine: random`
 keeps its pick for the tab in the browser's session storage. Nothing is sent anywhere, and nothing else is stored.
 
 ## Upgrading

@@ -59,6 +59,11 @@ commands:
 # (.trash/core); a trailing / makes a locked folder.
 protected: photo01.pic, photo02.pic, secrets, .trash/core
 
+# What visitors change in the files (their own, and whatever root changes) is kept in their
+# browser for their next visit; the files this site gives stay read-only to them. Without
+# this line: yes. no = a reload puts every file back.
+# persist:  no
+
 # The coiled cable under the monitor: turns is a count (desktop: the count on a wide screen;
 # turns is used on phones and wherever desktop is unset); the rest are in screen pixels.
 # Values outside a sensible range are pulled back into it.
