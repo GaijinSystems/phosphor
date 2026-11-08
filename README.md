@@ -708,7 +708,8 @@ browser (`localStorage`), under keys starting `phosphor-9/` and then the game's 
 A game on more than one machine keeps one set for all of them: Zork I, II and III save under
 `phosphor-9/zork1/save/...` (`zork2`, `zork3`) on every machine that has them, Adventure's saves are the same on
 4.3BSD, VMS and TOPS-20 (VMS and TOPS-20 file names have no case, so there `ADVENTURE CAVE` finds a game saved as
-`Cave`; on 4.3BSD the case must match),
+`Cave`; on 4.3BSD the case must match, and VMS and TOPS-20 find a 4.3BSD save
+with capitals only when its name is typed the same way),
 and TOPS-20's DUNGEON saves under `phosphor-9/zork/dsave`, as 4.3BSD's `zork` does.
 Nothing is sent anywhere, and clearing the site's data in the browser clears them.
 The C128's disk is a save file too: what the visitor writes, renames or scratches is
