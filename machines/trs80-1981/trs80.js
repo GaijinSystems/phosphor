@@ -190,6 +190,11 @@ function okFile(f){return f&&typeof f.n==='string'&&/^[A-Z][A-Z0-9]{0,7}(\/[A-Z0
 function srcLine(l){return typeof l==='string'&&/^\d+ /.test(l)}
 function saveDisk(){return P.save(DISKKEY,disk)}
 function full(){return P.save('trs80/probe',null)} /* after a failed save: true if the browser keeps data but is out of room, false if it keeps none (then this visit's disk and tape still work) */
+function killFile(x){ /* x off the disk; false, and x still there, when the browser's storage is full and the directory write fails */
+  var i=disk.files.indexOf(x);disk.files.splice(i,1);
+  if(!saveDisk()&&full()){disk.files.splice(i,0,x);return false}
+  return true;
+}
 function bytesOf(f){
   if(f.t==='C')return f.size;
   if(f.t==='T')return f.text.length;
@@ -313,7 +318,7 @@ var DOSCMD={
     var f=spec(a);if(!f)return 19;
     say('Killing '+f.n);
     var x=findFile(f.n);if(!x||f.drive)return 24;
-    disk.files.splice(disk.files.indexOf(x),1);saveDisk();put(13);
+    var ok=killFile(x);put(13);if(!ok)return 18;
   },
   RENAME:function(a){
     var m=(a||'').toUpperCase().match(/^(\S+)\s+(?:TO\s+)?(\S+)$/);
@@ -321,7 +326,7 @@ var DOSCMD={
     var f=spec(m[1]),g=spec(m[2]);if(!f||!g)return 19;
     var x=findFile(f.n);if(!x)return 24;
     if(findFile(g.n))return 40;
-    x.n=g.n;saveDisk();
+    x.n=g.n;if(!saveDisk()&&full()){x.n=f.n;return 18} /* the browser's storage full: the directory write fails */
   },
   LIST:function(a,done){
     if(!a)return 10;
@@ -579,7 +584,11 @@ function diskOp(w,done){
     if(e){done('DF');return}
     sleep(500,function(){done(null)});return;
   }
-  if(op==='kill'){if(!x){done('FNF');return}disk.files.splice(disk.files.indexOf(x),1);saveDisk();sleep(300,function(){done(null)});return}
+  if(op==='kill'){
+    if(!x){done('FNF');return}
+    if(!killFile(x)){done('DNR');return}
+    sleep(300,function(){done(null)});return;
+  }
   if(!x){done('FNF');return}
   if(x.t!=='B'){done('BFM');return}
   sleep(400,function(){

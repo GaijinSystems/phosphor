@@ -116,7 +116,8 @@ behind gaijin.systems.
   Tab and `?` at the prompt itself (`Phosphor.recognize`).
 - A ninth machine, an Apple IIe with DOS 3.3 (`apple2`): its own 40-column screen, Applesoft BASIC, the monitor and a
   disk kept in the browser, with Zork I, II and III and four new BASIC games on it. When the browser's storage is
-  full, `SAVE` and `BSAVE` say `DISK FULL` and write nothing.
+  full, `SAVE`, `BSAVE` and text files written with `OPEN`, `WRITE` and `CLOSE` say `DISK FULL` and write nothing, and
+  `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR` and leave the disk as it was.
 - A tenth, a Commodore 128 (`c128`, 1986): BASIC 7.0 on its screen editor, in 40 columns or, with Escape then X,
   80; a 1571 disk kept in the browser; and `GO 64` for a Commodore 64 with BASIC V2. Six of David Ahl's
   type-in games are on the disk. When the browser's storage is full, `DSAVE` writes nothing and `DS$` says
@@ -129,7 +130,9 @@ behind gaijin.systems.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
   with `BREAK` held at power-on, `CSAVE`/`CLOAD` to a cassette kept in the browser, `SYSTEM`, Zork I and II,
-  two of David Ahl's public-domain games and a new block-graphics one; checked against xtrs and MAME.
+  two of David Ahl's public-domain games and a new block-graphics one; checked against xtrs and MAME. When the
+  browser's storage is full, `SAVE` says `Disk full`, and `KILL` and `RENAME` fail as a directory write did (`Disk I/O
+  error` in BASIC, `* * ERROR 18 * *` at TRSDOS).
 - A thirteenth, a Honeywell Level 68 running Multics MR8.0 (`multics`, 1981): `login Guest`, ready messages, QUIT
   and command levels, `>udd>Guest>Guest` with segments, ACLs and added names, `qedx`, `exec_com`, info segments,
   and the letter in `read_mail`; the guest's files are kept in the browser. A machine can now take Ctrl-C itself
