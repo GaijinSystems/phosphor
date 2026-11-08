@@ -282,11 +282,14 @@ the line being typed in, as Release 6 does; of the lines it had worked out, only
 attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked for
 CMS to read once the command is done, or for the command's own read, even one it had still to ask, as FORMAT's and
 SORT's questions are when the attention cuts them short. The rest of a line split with the line end `#` waits in the
-console stack too, ahead of the line typed after an attention (CMS's DMSCRD stacks it). For this `cms.js` uses
-`Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above the line being typed. At
-every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF` leaves out both, so the next
-read goes on in the same line, after the text an attention cut short too: `cms.js` has `Phosphor.onInterrupt` answer
-`{says: '', same: true}`). A line half typed in when the attention comes is cancelled (CP signals it, and CMS's DMSCIT
+console stack too, ahead of the line typed after an attention (CMS's DMSCRD stacks it), also when the attention comes
+as the ready message types. The line typed after an attention is an Immediate command only when it is nothing else
+(`x#hx` is stacked), and a rest of just `HT` or `RT` acts at once (CMS's DMSCAT): `type big data#ht` types nothing.
+For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
+the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
+leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and the
+output of the steps beside it comes below that line, where the carriage stayed: `cms.js` has `Phosphor.onInterrupt`
+answer `{says: '', same: true}`). A line half typed in when the attention comes is cancelled (CP signals it, and CMS's DMSCIT
 reads again): the half-typed line is thrown away, not sent, and an EXEC at its `&READ`, or the editor, carries on,
 taking the next line; at an empty read, or while the editor types, the attention is CMS's, so `HX` then ends the EXEC
 or the edit.
