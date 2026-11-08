@@ -278,7 +278,7 @@ OPERATOR's password is there too, but the operator is logged on at the console. 
 The empty line is the machine's:
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
 Ctrl-C is the attention key. At a running EXEC it gives a read, and the EXEC goes on typing above the line being
-typed in, as Release 6 does: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
+typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
 for CMS, or for the EXEC's `&READ`. For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside
 a pending read, their output above the line being typed.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
@@ -606,7 +606,7 @@ though `LOGIN.COM` defines only four of them as foreign commands):
 | `CONQUEST` | real-time space war, against the robots (one player; the scheduler that stands in for its driver is new) |
 | `EMPIRE` | the war game, 1988 version |
 | `MONSTER` | the multi-user adventure, here with one user, and the world kept in the browser |
-| `MORIA` | Moria 4.8, from the VAX Pascal; its `h` command, and `?` while a character is made, run VMS HELP on its help library, whose text was recovered from the damaged MORIAHLP.HLB that survives |
+| `MORIA` | Moria 4.8, from the VAX Pascal; its `h` command, and `?` while a character is made, run VMS HELP on its help library, whose text was recovered from the damaged MORIAHLP.HLB that survives, its blank lines placed as in Moria UB 5.00's MORIAHLP.HLP, where it has the topic |
 | `STARTREK` | Super Star Trek, from SST2K, a later descendant standing in for the DECUS program, whose source was not found |
 
 **TOPS-20**, in `<GAMES>` (`DIR <GAMES>` lists them; `LOGIN.CMD` puts `GAMES:` in `SYS:`, so the
