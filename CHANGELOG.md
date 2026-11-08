@@ -130,15 +130,17 @@ behind gaijin.systems.
   type-in games are on the disk. When the browser's storage is full, `DSAVE` writes nothing and `DS$` says
   `72,DISK FULL`.
 - An eleventh, an IBM System/370 Model 158 running VM/370 Release 6 with CMS (`vm370`, 1980), on a typewriter
-  terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor,
-  EXECs, the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under
-  Hercules. Ctrl-C at a running CMS command or EXEC is an attention: it goes on typing while the terminal reads a
-  line, losing none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT`
-  stops the typing, and any other line is stacked for CMS); this uses `Phosphor.aside`, which runs output beside a
-  pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF` neither that nor a new line: the read goes
-  on in the same line, through a new `Phosphor.onInterrupt` answer, `{says, same: true}`); a line half typed in is
-  cancelled and the read is up again, so an EXEC's `&READ` and the editor carry on, and at an empty read the
-  attention is CMS's (`HX` ends the EXEC or the edit). A machine can now answer an empty line itself (`Phosphor.blank`). A
+  terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor, EXECs,
+  the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under Hercules.
+  Ctrl-C at a running CMS command or EXEC is an attention: it goes on typing while the terminal reads a line, losing
+  none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT` stops the typing,
+  and any other line is stacked for CMS, or for the command's own read, such as FORMAT's or SORT's question even when
+  the attention cut it short; the rest of a line split with `#` stays stacked ahead of it); this uses
+  `Phosphor.aside`, which runs output beside a pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF`
+  neither that nor a new line: the read goes on in the same line, after any output the attention cut short, through a
+  new `Phosphor.onInterrupt` answer, `{says, same: true}`); a line half typed in is cancelled and the read is up
+  again, so an EXEC's `&READ` and the editor carry on, and at an empty read, or while the editor types, the attention
+  is CMS's (`HX` ends the EXEC or the edit). A machine can now answer an empty line itself (`Phosphor.blank`). A
   site's `prompt:` no longer gives it one: it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
@@ -168,28 +170,34 @@ behind gaijin.systems.
 - ^Z stops the foreground job under bash and csh: bash says `[1]+  Stopped` and goes on with the rest of the line,
   leaving any loop it was in; csh says `Stopped` and drops the rest of the line. `jobs`, `fg`, `bg` and `kill -CONT`
   take it from there; vi and the other full-screen programs leave the glass and come back as they were with `fg`. At
-  the shell's own `read`, bash's tty echoes the ^Z and the read goes on. A loop, `if` or `case` ending in `&` runs as
-  a background job (sh and bash; bash's `jobs` shows it as bash prints it), and `( ... )` is a subshell with its own
-  directory, variables and status (starting with the shell's `$?`), in pipes, with redirection and with `&`; `jobs`
-  spaces out a `( ... )` inside one too. A loop, `if` or `case` can be piped or redirected too (sh and bash:
+  the shell's own `read`, bash's tty echoes the ^Z and throws away what was typed before it, and the read goes on. A
+  loop, `if` or `case` ending in `&` runs as a background job (sh and bash; bash's `jobs` shows it laid out over several
+  lines, as bash's own command printer does), and `( ... )` is a subshell with its own directory, variables and status
+  (starting with the shell's `$?`), in pipes, with redirection and with `&`; `jobs` spaces out a `( ... )`, and any
+  `( ... )` nested inside it (bash: `( sleep 9 & sleep 8 )`, csh: `( sleep 9; sleep 8 )`). A loop, `if` or `case` can be piped or redirected too (sh and bash:
   `done | cat`, `while read l; do ...; done < f > g`, `fi > f`, `echo x | while read ...`), and `read` takes its
   lines from a pipe or `<`, setting its names to nothing at the end of them. Each command of a pipe is its own
   process, so a loop, `read`, `cd` or `x=1` in one leaves the shell as it was (csh runs one of its own commands at
   the end of a pipe in the shell itself); the commands inside a read loop read from its input too; a loop writing to
-  `head` or `read` ends once they have read what they want, as SIGPIPE ends it (any loop, once a pipe holds 65536 of
-  its lines).
+  `head` or `read`, straight or through `cat`, `grep`, `tr` or `tee`, ends when it writes again after they have read
+  what they want, as SIGPIPE ends it (they read once 4096 bytes wait in the pipe, so a short loop is done before they
+  start, as it usually is on the real systems); any other loop is ended once 65536 of its lines wait in a pipe, to keep
+  memory bounded.
 - bash's `fg` and `bg` on a job that has just ended say `job has terminated`; bash's `kill` takes the real-time signals
-  34 to 64 and `kill -l` names them; a signal sent to a stopped job waits for it to go on, except KILL, and TERM and HUP
-  sent by `kill %n` or csh's `kill`, which follow them with CONT; bash says again that a job is stopped when `kill %n`
+  34 to 64 and `kill -l` names them; a signal sent to a stopped job takes effect when it is continued; KILL acts at
+  once, and `kill %n` (bash) or csh's `kill` follow TERM and HUP with CONT; bash says again that a job is stopped when `kill %n`
   signals it, so a stopped job it ends shows as stopped first and as ended at the prompt after (csh: `kill -STOP` on
   one says `Already stopped`).
 - `kill` on someone else's process says `Operation not permitted` (bash) or `Not owner` (csh, V7), `$$` is the login
-  shell's id that `ps` shows (in a `( ... )` too), and a signal the shell does not set aside ends it (all three set TERM
-  aside: V7's sh sets TERM and QUIT aside and catches INT).
+  shell's id that `ps` shows (in a `( ... )` too), and a signal sent to `$$` that the shell does not ignore ends the
+  session (all three ignore TERM and QUIT and catch INT; bash and csh also ignore TSTP, TTIN and TTOU, and V7's sh also
+  catches SEGV and ALRM).
 - IRIX has its own signal numbers (`USR1` 16, `STOP` 23, `TSTP` 24, `CONT` 25, new machine setting `signals: irix`).
 - A full-screen job brought back with `fg` and then killed from another job closes its screen and gives the prompt back,
   saying why (`Terminated`, `Killed`, ...); after ^C, V7's `wait` leaves `$?` at 0, as its sh did.
 - csh reports an error in a `while` expression at the `while` line and lists one-word aliases without ( ); bash's
-  `alias r = x` fails word by word; GNU grep has `-o` and `-F`.
+  `alias r = x` fails word by word; GNU grep has `-o` and `-F`; GNU head takes `-n`, `-c`, `--lines` and `--bytes`
+  (4.3BSD's and IRIX's take only `-count`); bash's `read` takes its options (`-r`, `-p` and the rest) and with no name
+  sets `REPLY`.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
 - The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.
