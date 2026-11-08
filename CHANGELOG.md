@@ -133,14 +133,19 @@ behind gaijin.systems.
   terminal: LOGON, the CP and CMS commands, the ready message, minidisks with LINK and ACCESS, the CMS editor, EXECs,
   the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under Hercules.
   Ctrl-C at a running CMS command or EXEC is an attention: it goes on typing while the terminal reads a line, losing
-  none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT` stops the typing,
-  and any other line is stacked for CMS, or for the command's own read, such as FORMAT's or SORT's question even when
-  the attention cut it short; the rest of a line split with `#` stays stacked ahead of it, also when the attention
-  comes as the ready message types; the line typed is an Immediate command only when it is nothing else, so `x#hx` is
-  stacked, and a rest of just `HT` or `RT` acts at once, as CMS's DMSCAT does: `type big data#ht` types nothing); this
-  uses `Phosphor.aside`, which runs output beside a pending read. CP types `!` at each attention (with
-  `TERMINAL ATTN OFF` neither that nor a new line: the read goes on in the same line, after any output the attention
-  cut short, and what the EXEC types meanwhile comes below it, through a new `Phosphor.onInterrupt` answer,
+  none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT` stops the typing
+  until the command is done, and any other line is stacked for CMS, or for the command's own read, such as FORMAT's
+  or SORT's question even when the attention cut it short; the rest of a line split with `#` stays stacked ahead of
+  it). The rest of a line split with `#` stays stacked ahead of the line typed, also when the attention comes while
+  the ready message is being typed. A line typed after an attention is an Immediate command only when it is nothing
+  else (`x#hx` is stacked), and a rest of just `HT` or `RT` acts when CMS reads it, as DMSCAT does: `type` of a long
+  file with `#ht` after it types nothing. When the command is done its ready message comes, and CMS reads what is
+  stacked before the read still up, as DMSCRD does, so those commands run beside it and `HX` ends only what is still
+  running; `#CP` alone at that read stops the virtual machine where it is, and `BEGIN` lets it go on, with no ready
+  message of its own. This uses `Phosphor.aside`, which runs output beside a pending read. CP types `!` at each
+  attention (with `TERMINAL ATTN OFF` neither that nor a new line: the read goes on in the same line, after any
+  output the attention cut short, and what the command or EXEC types meanwhile comes below that line, where the
+  carriage stayed, through a new `Phosphor.onInterrupt` answer,
   `{says, same: true}`); a line half typed in is cancelled and the read is up
   again, so an EXEC's `&READ` and the editor carry on, and at an empty read, or while the editor types, the attention
   is CMS's (`HX` ends the EXEC or the edit). A machine can now answer an empty line itself (`Phosphor.blank`). A
@@ -177,17 +182,20 @@ behind gaijin.systems.
   loop, `if` or `case` ending in `&` runs as a background job (sh and bash; bash's `jobs` shows it laid out over several
   lines, as bash's own command printer does), and `( ... )` is a subshell with its own directory, variables and status
   (starting with the shell's `$?`), in pipes, with redirection and with `&`; `jobs` prints a `( ... )` spaced out as
-  each shell does, with any redirection after it, and an `\&` in it as a word, nested ones too (`( sleep 9 & sleep 8 )` shows as typed under bash, and as `( sleep 9; sleep 8 )`
-  under csh). A loop, `if` or `case` can be piped or redirected too (sh and bash: `done | cat`,
-  `while read l; do ...; done < f > g`, `fi > f`, `echo x | while read ...`), and `read` takes its
-  lines from a pipe or `<`, setting its names to nothing at the end of them. Each command of a pipe is its own
+  each shell does (`( sleep 9 & sleep 8 )` under bash, `( sleep 9; sleep 8 )` under csh), nested ones too, with any
+  redirection after it; an escaped `\&` in it is an ordinary word, not a background `&`. A loop, `if` or `case` can be
+  piped or redirected too (sh and bash: `done | cat`, `while read l; do ...; done < f > g`, `fi > f`,
+  `echo x | while read ...`), and `read` takes its lines from a pipe or `<`, setting its names to nothing at the end
+  of them. Each command of a pipe is its own
   process, so a loop, `read`, `cd` or `x=1` in one leaves the shell as it was (csh runs one of its own commands at
   the end of a pipe in the shell itself); the commands inside a read loop read from its input too; a loop writing to
   `head` or `read`, straight or through `cat`, `grep`, `tr` or `tee`, ends when it writes again after they have read
   what they want, as SIGPIPE ends it (here they start reading once 4096 bytes wait in the pipe, V7's and 4.3BSD's
-  pipe size, so a short loop is done before they start, as it usually is on the real systems, or as soon as the
-  writer waits, in a `sleep` or a read from the terminal, so `while :; do echo y; sleep 1; done | head -1` ends after
-  a second); any other loop is ended once 65536 of its lines wait in a pipe, to keep memory bounded.
+  pipe size, or as soon as the writer waits in a `sleep` or a read from the terminal; so a short loop is usually done
+  before they start, as on the real systems, and `while :; do echo y; sleep 1; done | head -1` ends after a second).
+  What `echo -n` writes goes down the pipe as it is written: `head -c` counts its bytes, and `head -n` and `read` count
+  a line only at its newline, so `while :; do echo -n x; done | head -c 10` ends and `(echo -n a; sleep 1; echo b) |
+  head -1` prints `ab`. Any other loop is ended after 65536 writes into a pipe, to keep memory bounded.
 - bash's `fg` and `bg` on a job that has just ended say `job has terminated`; bash's `kill` takes the real-time signals
   34 to 64 and `kill -l` names them; a signal sent to a stopped job takes effect when it is continued; KILL acts at
   once, and `kill %n` (bash) or csh's `kill` follow TERM and HUP with CONT; bash says again that a job is stopped
@@ -196,7 +204,8 @@ behind gaijin.systems.
 - `kill` on someone else's process says `Operation not permitted` (bash) or `Not owner` (csh, V7), `$$` is the login
   shell's id that `ps` shows (in a `( ... )` too), and a signal sent to `$$` that the shell does not ignore ends the
   session (all three ignore TERM and QUIT and catch INT; bash and csh also ignore TSTP, TTIN and TTOU, and V7's sh also
-  catches SEGV and ALRM, though ALRM ends it while it waits at its prompt, as one sent by a background job finds it).
+  catches SEGV and ALRM, though ALRM ends it when it comes while the shell waits at its prompt, which is when one sent
+  by a background job arrives).
 - IRIX has its own signal numbers (`USR1` 16, `STOP` 23, `TSTP` 24, `CONT` 25, new machine setting `signals: irix`).
 - A full-screen job brought back with `fg` and then killed from another job closes its screen and gives the prompt back,
   saying why (`Terminated`, `Killed`, ...); after ^C, V7's `wait` leaves `$?` at 0, as its sh did.
@@ -204,12 +213,18 @@ behind gaijin.systems.
   `alias r = x` fails word by word; GNU grep has `-o` and `-F`; GNU head takes `-n`, `-c`, `--lines` and `--bytes`,
   with GNU's size suffixes (`b`, `k` or `K` up to `Q`, `kB`, `KiB` and so on), and the old `-2c`, `-1k` or `-3v` as
   its first argument (4.3BSD's and IRIX's take only `-count`), and reads `-` from the keyboard in its turn among the
-  files; GNU's head and tail say `cannot open 'f' for reading` and `error reading 'd'`, sort `cannot read: f`, and
-  grep, wc and the rest name the file and the error after their own name; bash's `read` takes its options (`-r`, `-p`
-  and the rest) and with no name sets `REPLY`; without `-r` a backslash keeps the next character from splitting the
-  words, and one at the end of a line goes on to the next (V7's `read` too, which splits at each IFS character while
-  it has names left and gives the last one the rest as it is, as its readvar does).
-- `echo -n`, and `head -c` cutting a line short, leave the line open: what comes next, the prompt too, goes on in it
-  (output into a pipe or file still ends each line there).
+  files, and `-z` (lines that end at a NUL); GNU's head and tail say `cannot open 'f' for reading`, or `error reading
+  'd'` for a directory, sort `cannot read: f`, and grep, wc and the rest name the file and the error after their own
+  name. GNU wc prints a row for each file and a `total` for more than one, as wide as GNU's are (one number of one
+  file as it is, at least 7 when one is a directory or a pipe), and for a directory a row of 0s before `Is a
+  directory`. bash's `read` takes its options (`-r`, `-p` and the rest) and with no name sets `REPLY`, and splits at
+  IFS as bash does (`IFS=: read a b` gives `x:y` as `x` and `y`; IFS white space around a break goes, and the last
+  name takes the rest); without `-r` a backslash keeps the next character from splitting the words, and one at the
+  end of a line goes on to the next (V7's `read` too, which splits at each IFS character while it has names left and
+  gives the last one the rest as it is, as its readvar does).
+- `echo -n`, and `head -c` cutting a line short, leave the line open: what comes next, the prompt too, goes on in it.
+  A file or pipe keeps a last line with no newline as it is: `echo -n q > f` makes a file of 1 byte, `>>` goes on in
+  that line, and `cat`, `wc`, `head`, `tail`, `tr` and `tee` leave it open as well (`echo -n ab | cat` and the prompt
+  follows `ab`). A background job's line still goes above the prompt after an `echo -n`.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
 - The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.

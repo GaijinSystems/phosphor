@@ -279,20 +279,25 @@ The empty line is the machine's:
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
 Ctrl-C is the attention key. At a running CMS command or EXEC it gives a read, and the command goes on typing above
 the line being typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the
-attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked for
-CMS to read once the command is done, or for the command's own read, even one it had still to ask, as FORMAT's and
-SORT's questions are when the attention cuts them short. The rest of a line split with the line end `#` waits in the
-console stack too, ahead of the line typed after an attention (CMS's DMSCRD stacks it), also when the attention comes
-as the ready message types. The line typed after an attention is an Immediate command only when it is nothing else
-(`x#hx` is stacked), and a rest of just `HT` or `RT` acts at once (CMS's DMSCAT): `type big data#ht` types nothing.
+attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing (`HT` holds until the command is
+done), and any other line is stacked for CMS to read once the command is done, or for the command's own read, even
+one it had still to ask, as FORMAT's and SORT's questions are when the attention cuts them short. When the command
+is done its ready message comes, and CMS reads what is stacked before the read still up (CMS's DMSCRD), so those
+commands run beside it too, also after an attention while the ready message is being typed, and `HX` then ends only
+what is still running. The rest of a line split with the line end `#` waits in the console stack too, ahead of the
+line typed after an attention (DMSCRD stacks it), also when the attention comes while the ready message is being
+typed. The line typed after an attention is an Immediate command only when it is nothing else (`x#hx` is stacked),
+and a rest of just `HT` or `RT` is not stacked but acts as soon as CMS reads the line (DMSCAT): `type` of a long file
+with `#ht` after it types nothing. `#CP` alone at that read stops the virtual machine where it is, and `BEGIN` lets
+it go on, the read up again, with no ready message of its own.
 For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
 the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
-leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and the
-output of the steps beside it comes below that line, where the carriage stayed: `cms.js` has `Phosphor.onInterrupt`
-answer `{says: '', same: true}`). A line half typed in when the attention comes is cancelled (CP signals it, and CMS's DMSCIT
-reads again): the half-typed line is thrown away, not sent, and an EXEC at its `&READ`, or the editor, carries on,
-taking the next line; at an empty read, or while the editor types, the attention is CMS's, so `HX` then ends the EXEC
-or the edit.
+leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and what the
+command or EXEC types meanwhile comes below that line, where the carriage stayed: `cms.js` has
+`Phosphor.onInterrupt` answer `{says: '', same: true}`). A line half typed in when the attention comes is cancelled
+(CP signals it, and CMS's DMSCIT reads again): the half-typed line is thrown away, not sent, and an EXEC at its
+`&READ`, or the editor, carries on, taking the next line; at an empty read, or while the editor types, the attention
+is CMS's, so `HX` then ends the EXEC or the edit.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
 FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP. A few words from the batch side of the machine
