@@ -606,7 +606,7 @@ though `LOGIN.COM` defines only four of them as foreign commands):
 | `CONQUEST` | real-time space war, against the robots (one player; the scheduler that stands in for its driver is new) |
 | `EMPIRE` | the war game, 1988 version |
 | `MONSTER` | the multi-user adventure, here with one user, and the world kept in the browser |
-| `MORIA` | Moria 4.8, from the VAX Pascal; its `h` and `?` run VMS HELP on its help library, whose text was recovered from the damaged MORIAHLP.HLB that survives |
+| `MORIA` | Moria 4.8, from the VAX Pascal; its `h` command, and `?` while a character is made, run VMS HELP on its help library, whose text was recovered from the damaged MORIAHLP.HLB that survives |
 | `STARTREK` | Super Star Trek, from SST2K, a later descendant standing in for the DECUS program, whose source was not found |
 
 **TOPS-20**, in `<GAMES>` (`DIR <GAMES>` lists them; `LOGIN.CMD` puts `GAMES:` in `SYS:`, so the

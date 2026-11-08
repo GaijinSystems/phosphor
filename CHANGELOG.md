@@ -85,8 +85,8 @@ behind gaijin.systems.
   and `@` with 4.3BSD's expressions: `&&`, `||`, `!`, arithmetic, `=~`, `-r` `-w` `-x` `-e` `-d` `-f` `-z` `-o` and
   `{ command }` (right to left, with `Divide by 0.`), and `@ z[2] = 5`; `|&` in csh and bash. `2>&1 >file` keeps the shell's
   order, an inner `>&2` follows an outer `2>`, and a quote opens anywhere in a word: an unclosed one waits for the rest
-  (`Unmatched '.` in csh). `&` prints the job's number and process id, as each shell did, and `ps` (Linux's and IRIX's too) gives
-  the same ids; an `exit`, `break` or `cd`
+  (`Unmatched '.` in csh). `&` prints the job's number and process id, as each shell did, and `ps &` (Linux's and IRIX's too)
+  shows itself with that id; an `exit`, `break` or `cd`
   in the background leaves the shell alone. Machines boot with their own
   `== boot ==`.
 - Locked files stay locked through `mv`, `rm -r`, links and every machine's own copy commands, and
