@@ -41,7 +41,7 @@ behind gaijin.systems.
   after the one before has finished, and its backticks and variables are worked out when its turn
   comes.
 - The file system can be written for the session: `>`, `touch`, `mkdir`, `cp`, `mv`, `rm`.
-  A reload puts everything back. A file holds up to 4 MB; past that, the machine says its disk is full.
+  Unless `persist: no` is set, a visitor's changes are kept for their next visit (see below). A file holds up to 4 MB; past that, the machine says its disk is full.
   `cat` and friends read the keyboard until Ctrl-D.
 - `ed`, the standard editor, with its addresses, regular expressions and `?`.
 - `vi`, the visual editor, on the machines that had it, drawn on the glass.
@@ -81,14 +81,13 @@ behind gaijin.systems.
   `limit`, and the real `/usr/games`. New machine setting `perror`.
 - Text tools: `grep`, `wc`, `sort`, `uniq`, `tail`, `tr`, `tee`, `cal`, `file`, `du` and others.
 - Each machine has only the commands its real system had; `help` lists just the essentials.
-- Scripts and the prompt understand `for`, `while`, `until`, `if`, `case`, `test`, `expr`, `read`,
-  `shift`, `$1` and backticks; on csh machines, `foreach`, `while`, `>&`, `$status`, `$#name`, `$z[2-]`, and `if`
-  and `@` with 4.3BSD's expressions: `&&`, `||`, `!`, arithmetic, `=~`, `-r` `-w` `-x` `-e` `-d` `-f` `-z` `-o` and
-  `{ command }` (right to left, with `Divide by 0.`), and `@ z[2] = 5`; `|&` in csh and bash. `2>&1 >file` keeps the shell's
-  order, an inner `>&2` follows an outer `2>`, and a quote opens anywhere in a word: an unclosed one waits for the rest
-  (`Unmatched '.` in csh). `&` prints the job's number and process id, as each shell did, and `ps &` (Linux's and IRIX's too)
-  shows itself with that id; an `exit`, `break` or `cd`
-  in the background leaves the shell alone. Machines boot with their own
+- Scripts and the prompt understand `for`, `while`, `until`, `if`, `case`, `test`, `expr`, `read`, `shift`, `$1` and
+  backticks; on csh machines, `foreach`, `while`, `>&`, `$status`, `$#name`, `$z[2-]`, and `if` and `@` with 4.3BSD's
+  expressions: `&&`, `||`, `!`, arithmetic, `=~`, `-r` `-w` `-x` `-e` `-d` `-f` `-z` `-o` and `{ command }` (right to
+  left, with `Divide by 0.`), and `@ z[2] = 5`; `|&` in csh and bash. `2>&1 >file` keeps the shell's order, an inner
+  `>&2` follows an outer `2>`, and a quote opens anywhere in a word: an unclosed one waits for the rest (`Unmatched '.`
+  in csh). `&` prints the job's number and process id, as each shell did, and `ps &` (Linux's and IRIX's too) shows
+  itself with that id; an `exit`, `break` or `cd` in the background leaves the shell alone. Machines boot with their own
   `== boot ==`, and a site's `== boot: linux, bsd ==` gives the machines it names a boot of their own.
 - Locked files stay locked through `mv`, `rm -r`, links and every machine's own copy commands, and
   `rm -r` and `rmdir` leave alone a folder that `su` will return to.
@@ -97,12 +96,16 @@ behind gaijin.systems.
   anywhere. `/tmp` starts empty, as at a boot. When the site changes a file, a visitor's copy of it gives way to the new
   one. The site's files and the system's are read-only to the guest, refused in each machine's words; root (`SYSTEM`,
   an enabled `OPERATOR`) can change or remove them. MS-DOS and CP/M mark them read-only instead, and `ATTRIB -R` and
-  `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder.
+  `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder. A second name
+  made with `ln` comes back as a link, and a moved file keeps what made it work (a story file, a device). Each
+  machine keeps at most 256K characters; what does not fit is left out, largest first, and the disk is said to be
+  full once for it. A site keeps its own saves when others share its web address.
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
-- `teletype: yes` (off unless set) gives the V7 machine a `teletype on|off` command, off until the visitor turns it on and
-  remembered in their browser, that puts a Teletype Model 33 on the machine: ten characters a second with the
-  carriage's time at each line end, capitals only through V7's `lcase` mapping (`\!` for a pipe), `#` and `@` to
-  erase, the clack, carriage return and bell made in the browser, and `stty` that reports and switches `lcase`.
+- `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
+  off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
+  line end, 72 columns, capitals only through V7's `lcase` mapping (`\!` for a pipe), `#` to erase a character and `@`
+  to kill the line, the clack, carriage return and bell made in the browser, and `stty` that reports the line and
+  changes `lcase`, `echo`, `cbreak`, `raw` and the erase and kill characters, and hangs up at `stty 0`.
 - File names, commands and aliases follow the machine's `case:` setting; Unix is case-sensitive.
 - Glow colours follow `--phos-rgb`, `--dim-rgb` and `--err-rgb`, so a theme recolours the
   whole tube, and the amber example is one line.
@@ -144,22 +147,25 @@ behind gaijin.systems.
   the letter in the reader, and the guest's A-disk kept in the browser; checked against Release 6 under Hercules.
   Ctrl-C at a running CMS command or EXEC is an attention: it goes on typing while the terminal reads a line, losing
   none of the lines it had worked out ahead but the one the attention cut short (`HX` ends it, `HT` stops the typing
-  until the command is done, and any other line is stacked for CMS, or for the command's own read, such as FORMAT's
-  or SORT's question even when the attention cut it short). The rest of a line split with `#` stays stacked ahead of the line typed, also when the attention comes while
-  the ready message is being typed. A line typed after an attention is an Immediate command only when it is nothing
-  else (`x#hx` is stacked), and a rest of just `HT` or `RT` is not stacked but acts as soon as CMS reads the line (DMSCAT): `type` of a long
-  file with `#ht` after it types nothing. When the command is done its ready message comes, and CMS reads what is
-  stacked first and waits for the attention's read only when nothing is left (DMSCRD), so those commands run beside it and `HX` ends only what is still
-  running; `#CP` alone at that read stops the virtual machine where it is, and `BEGIN` lets it go on, with no ready
-  message of its own (a line CMS had taken from the stack but not yet begun runs then). Another attention at that
-  read only puts it up again, and `LOGOFF`, `DISCONN` or `IPL` there ends all that was going on beside it. This uses `Phosphor.aside`, which runs output beside a pending read. CP types `!` at each
-  attention (with `TERMINAL ATTN OFF` neither that nor a new line: the read goes on in the same line, after any
-  output the attention cut short, and what the command or EXEC types meanwhile comes below that line, where the
-  carriage stayed, through a new `Phosphor.onInterrupt` answer,
-  `{says, same: true}`); a line half typed in is cancelled and the read is up
-  again, so an EXEC's `&READ` and the editor carry on, and at an empty read, or while the editor types, the attention
-  is CMS's (`HX` ends the EXEC or the edit). A machine can now answer an empty line itself (`Phosphor.blank`). A
-  site's `prompt:` no longer gives it one: it has no prompt, as the typewriter terminal had none.
+  until the command is done, and any other line is stacked for CMS, or for the command's own read, such as FORMAT's or
+  SORT's question even when the attention cut it short). The rest of a line split with `#` stays stacked ahead of the
+  line typed, also when the attention comes while the ready message is being typed. A line typed after an attention is
+  an Immediate command only when it is nothing else (`x#hx` is stacked), and a rest of just `HT` or `RT` is not
+  stacked but acts as soon as CMS reads the line (DMSCAT): `type` of a long file with `#ht` after it types nothing.
+  When the command is done its ready message comes, and CMS reads what is stacked first and waits for the attention's
+  read only when nothing is left (DMSCRD), so those commands run beside it and `HX` ends only what is still running;
+  `#CP` alone at that read stops the virtual machine where it is, and `BEGIN` lets it go on, with no ready message of
+  its own (a line CMS had taken from the stack but not yet begun runs then). Another attention at that read only puts
+  it up again; `LOGOFF`, `IPL` or `SYSTEM RESET` there, or in an EXEC running beside it, ends all that was going on
+  beside it once CP has typed what it says, and `DISCONN` keeps the virtual machine running unseen, for a `LOGON`
+  within 15 minutes to reconnect to (`RECONNECTED AT`, in CP mode until `BEGIN`). This uses `Phosphor.aside`, which
+  runs output beside a pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF` neither that nor a new
+  line: the read goes on in the same line, after any output the attention cut short, and what the command or EXEC
+  types meanwhile comes below that line, where the carriage stayed, through a new `Phosphor.onInterrupt` answer,
+  `{says, same: true}`); a line half typed in is cancelled and the read is up again, so an EXEC's `&READ` and the
+  editor carry on, and at an empty read, or while the editor types, the attention is CMS's (`HX` ends the EXEC or the
+  edit). A machine can now answer an empty line itself (`Phosphor.blank`). A site's `prompt:` no longer gives it one:
+  it has no prompt, as the typewriter terminal had none.
 - A twelfth, a Radio Shack TRS-80 Model III (`trs80`, 1981): its own 64 by 16 screen with block graphics, TRSDOS 1.3
   (`DIR`, `FREE`, `LIST`, `KILL`) and Disk BASIC with the disk kept in the browser, the ROM's Level II BASIC
   with `BREAK` held at power-on, `CSAVE`/`CLOAD` to a cassette kept in the browser, `SYSTEM`, Zork I and II,
@@ -180,11 +186,11 @@ behind gaijin.systems.
 - Debian 13 and TOPS-20 have a super-user too, for those who look in the right place: on Debian, `su`,
   `su -c`, and as root `sudo`, `systemctl` and `shutdown`; on TOPS-20, OPERATOR, `ENABLE` and the `$` prompt.
   TOPS-20's `LOGIN` now says `?Incorrect password`, as the 6.1 EXEC does.
-- A command started with `&` really runs in the background: the prompt comes back at once, `ps` lists it until it
-  ends, its output arrives while you type, and bash and csh say `Done`, `Exit N` or `Terminated` before the next
-  prompt, which V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); under bash and
-  csh a job that reads the terminal or wants the screen stops, as job control has it; under V7 sh it reads /dev/null, or
-  ends if it wants the screen. ^C leaves background jobs alone.
+- A command started with `&` really runs in the background: the prompt comes back at once, `ps` lists it until it ends,
+  its output arrives while you type, and bash and csh say `Done`, `Exit N` or `Terminated` before the next prompt, which
+  V7 sh does not. `jobs`, `fg`, `bg` and `%n` (bash and csh), `wait` and `kill` (all three); under bash and csh a job
+  that reads the terminal or wants the screen stops, as job control has it; under V7 sh it reads /dev/null, or ends if
+  it wants the screen. ^C leaves background jobs alone.
 - ^Z stops the foreground job under bash and csh: bash says `[1]+  Stopped` and goes on with the rest of the line,
   leaving any loop it was in; csh says `Stopped` and drops the rest of the line. `jobs`, `fg`, `bg` and `kill -CONT`
   take it from there; vi and the other full-screen programs leave the glass and come back as they were with `fg`. At
@@ -243,8 +249,8 @@ behind gaijin.systems.
   that line, and `cat`, `wc`, `head`, `tail`, `tr` and `tee` leave it open as well (after `echo -n ab | cat` the prompt
   follows `ab`); GNU `cat -n` numbers a line once, though the next file goes on in it. A background job's output still
   comes on its own line above the prompt, even after an `echo -n`. vi ends every line it writes with a newline, and says
-  `[Incomplete last line]` when it reads a file without one, as ex and vi did (on Linux in vim-tiny's words:
-  `1 line, 1 byte`, and `written` after a write).
+  `[Incomplete last line]` when it reads a file without one, as ex and vi did (on Linux vim-tiny says it too, counting
+  bytes: `1 line, 1 byte`, and `written` after a write).
 - bash has `{ list; }` (and V7 sh too): run in the shell itself, or as its own process in a pipe or with `&`, with any
   redirection after it for all of it, and it reads on at a `>` prompt until its `}`; bash also has `<<<` here-strings
   and `${PIPESTATUS[@]}` (`${PIPESTATUS[0]}`, `$PIPESTATUS`). Inside double quotes a backslash quotes only `$`, `` ` ``,
@@ -252,7 +258,16 @@ behind gaijin.systems.
   than one and ends with status 2 when it could not open one: V7's stops there, the others go on; GNU's `-q` prints
   nothing and makes it 0 after a match, its `-s` and System V's (IRIX) leave out the messages, and V7's and 4.3BSD's
   `-s` print nothing but the messages.
-- `x = 1` on VM/370, Multics and TOPS-20 is a line like any other for the machine to answer; only VMS takes it as a
-  symbol without a word. CMS gets `help`, `mail` and the terminal's other words with the blanks they were typed with.
+- bash has `time` (with `-p`) and `!` before a pipeline, and `x=(1 2)` and `declare`, `typeset`, `readonly` and `local`
+  take a `( )` list (here `$x` is its first element). An alias is not expanded again inside its own text
+  (`alias g='{ g; }'` says `g: command not found`), and a command not found leaves 127 in bash; an `if` that ran no
+  branch leaves 0 there. A `)` that closes nothing is a syntax error (`Too many )'s.` in csh). A quote over several
+  lines of a typed `for` or `while` is read whole before it is checked, a script stops before a command whose quote
+  began on an earlier line, and a here-document's word (`<<'EOF'`, `<<"EOF"`) no longer hides the lines after it from
+  the check. GNU grep reads `-` as its input; `wc` of a directory on V7, 4.3BSD and IRIX counts its entries' bytes, as
+  their `wc` read them. `x=1` on CP/M and MS-DOS is a command like any other (`X=1?`, `Bad command or file name`).
+- `x = 1` and `x=1` on VM/370, Multics and TOPS-20 are lines like any other for the machine to answer; only VMS takes
+  them as a symbol without a word. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
+  blanks and all.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
 - The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.
