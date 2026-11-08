@@ -14,6 +14,7 @@ var D=P.debian={ /* what the machine is, for this file and fs.js */
 var BOOT=null,OLD=null,STK=[],RUN=0; /* the shells su started, newest last: what each says as it ends ('exit', or 'logout' after su -), and who and where to go back to */
 P.setup(function(){
   BOOT=new Date(P.st.login.getTime()-52e3); /* the machine came up as the terminal did */
+  exported(); /* what the session starts with is exported */
   function ps1(){
     var S=P.st;
     if(S.user==='root'&&S.home==='/'){S.home='/root';if(S.cwd==='/')S.cwd='/root'} /* root logged in at the console: root's home */
@@ -99,7 +100,7 @@ function human(b,suffix){ /* 4.0K, 13K, 1.9G: GNU rounds up */
 }
 
 /* ---------- the shell ---------- */
-var BUILTIN=['alias','bg','cd','command','echo','exit','export','false','fg','help','history','jobs','kill','logout','printf','pwd','read','set','shift','source','test','true','type','umask','unalias','unset','wait'];
+var BUILTIN=['alias','bg','cd','command','declare','echo','exit','export','false','fg','help','history','jobs','kill','local','logout','printf','pwd','read','readonly','set','shift','source','test','true','type','typeset','umask','unalias','unset','wait'];
 cmd('cd','','change the shell working directory','cd [-L|[-P [-e]] [-@]] [dir]',
   'changes the working directory to dir, or to your home directory if there is none. cd - goes back to the one before, and says where that is.',
   function(a){
@@ -167,12 +168,54 @@ cmd('export','','set export attribute for shell variables','export [-fn] [name[=
   var args=w.slice(1).filter(function(x){return x!=='-p'});
   if(!args.length){var E=envAll();lines(Object.keys(E).sort().map(function(k){return 'declare -x '+k+'="'+E[k]+'"'}));return}
   args.forEach(function(x){
-    var m=x.match(/^([A-Za-z_]\w*)(?:=(.*))?$/);
+    var m=x.match(/^([A-Za-z_]\w*)(?:\+?=[\s\S]*)?$/);
     if(!m){err("bash: export: `"+x+"': not a valid identifier");return}
-    if(m[2]!==undefined)P.env[m[1]]=m[2];
+    exported()[m[1]]=true;P.bashVars.asg(x);
   });
 });
-cmd('unset','','unset values and attributes of shell variables and functions','unset [-f] [-v] [-n] [name ...]','removes each variable named.',function(a){a.forEach(function(k){delete P.env[k]})});
+var EXP=null; /* the exported names, which declare -p shows with -x: the ones the session started with, and export's */
+function exported(){if(!EXP){EXP=Object.create(null);Object.keys(P.env).concat(['HOME','LOGNAME','USER']).forEach(function(k){EXP[k]=true})}return EXP}
+function declared(n){ /* declare -p's line for n, or null when it is not set */
+  var V=P.bashVars,k=V.kind(n),v=V.value(n);
+  if(!k&&v===null)return null;
+  return 'declare '+(k?'-'+k:exported()[n]?'-x':'--')+' '+n+(v===null?'':'='+v);
+}
+function assigns(name,w,decl){ /* declare, typeset and readonly: name=value, name=( ... ), name[i]=value each; -a and -A make arrays. false when one went wrong */
+  var ok=true,V=P.bashVars;
+  w.forEach(function(x){
+    var m=x.match(/^([A-Za-z_]\w*)(\[[^\]]*\])?(\+?=[\s\S]*)?$/);
+    if(!m||m[2]&&m[3]===undefined){err('bash: '+name+": `"+x+"': not a valid identifier");ok=false;return}
+    if(decl&&!V.make(m[1],decl==='A')){err('bash: '+name+': '+m[1]+': cannot convert '+(decl==='A'?'indexed to associative':'associative to indexed')+' array');ok=false;return}
+    if(m[3]!==undefined&&V.asg(x,decl)===false)ok=false;
+  });
+  return ok;
+}
+cmd(['declare','typeset'],'','set variable values and attributes','declare [-aAfFgiIlnrtux] [name[=value] ...] or declare -p [name ...]','gives each name the value after its =; -a makes an indexed array, -A an associative one, and name=( ... ) gives an array its elements. -p shows each name as a declare command; with no name, lists the variables. the other attributes are not kept here.',function(a,raw,w){
+  var o='',args=[];
+  w.slice(1).forEach(function(x){if(!args.length&&/^[-+][A-Za-z]+$/.test(x)){if(x.charAt(0)==='-')o+=x.slice(1)}else args.push(x)});
+  var decl=o.indexOf('A')>=0?'A':o.indexOf('a')>=0?'a':null,E=envAll();
+  if(o.indexOf('p')>=0){
+    var bad=false;
+    (args.length?args:Object.keys(E).concat(P.bashVars.names()).filter(function(k,i,L){return L.indexOf(k)===i}).sort()).forEach(function(n){var t=declared(n);if(t===null){err('bash: '+w[0]+': '+n+': not found');bad=true}else P.typeLine(t)});
+    if(bad)P.status(1);
+    return;
+  }
+  if(!args.length){
+    var arr=P.bashVars.names();
+    lines(Object.keys(E).concat(arr).filter(function(k,i,L){return L.indexOf(k)===i}).sort().filter(function(k){return arr.indexOf(k)<0||P.bashVars.value(k)!==null}).map(function(k){return k+'='+(arr.indexOf(k)>=0?P.bashVars.value(k):E[k])}));
+    return;
+  }
+  if(!assigns(w[0],args,decl))P.status(1);
+});
+cmd('readonly','','mark shell variables as unchangeable','readonly [-aAf] [name[=value] ...] or readonly -p','gives each name the value after its =; that it may not be changed is not kept here.',function(a,raw,w){
+  if(!assigns('readonly',w.slice(1).filter(function(x){return x.charAt(0)!=='-'}),null))P.status(1);
+});
+cmd('local','','define local variables','local [option] name[=value] ...','makes a variable local to a shell function; there are none here, so it says so.',function(){err('bash: local: can only be used in a function')});
+cmd('unset','','unset values and attributes of shell variables and functions','unset [-f] [-v] [-n] [name ...]','removes each variable named, or one element of an array: unset \'x[1]\'.',function(a,raw,w){
+  var bad=false;
+  w.slice(1).filter(function(x){return !/^-[fvn]+$/.test(x)}).forEach(function(k){if(!P.bashVars.unset(k)){err("bash: unset: `"+k+"': not a valid identifier");bad=true}});
+  if(bad)P.status(1);
+});
 cmd('env','/usr/bin','run a program in a modified environment','env [OPTION]... [-] [NAME=VALUE]... [COMMAND [ARG]...]','with no command, prints the environment, one NAME=value to a line.',function(){
   var E=envAll();lines(Object.keys(E).sort().map(function(k){return k+'='+E[k]}));
 });
@@ -237,7 +280,7 @@ cmd('su','/usr/bin','run a command with substitute user and group ID','su [optio
     if(l===null||l===P.INT)return;
     var word=P.profile.rootPassword;
     if(who==='root'&&word&&P.fold(l)===P.fold(word)){
-      if(piped){err('Password: ');P.queue(function(){P.status(0)})} /* to the terminal, not the pipe. The line stays open on a real one; every line ends here */
+      if(piped){P.typeLine('Password: ','err',null,{open:true});P.queue(function(){P.status(0)})} /* to the terminal, not the pipe, and the line stays open */
       if(run!=null){as('root',run,false,login);return}
       if(piped)return; /* the shell reads the rest of the pipe, finds nothing, and ends */
       if(P.rootHeld()){nest('root',login);return} /* under root already: one more shell */
@@ -295,8 +338,9 @@ cmd(['less','more'],'/usr/bin','display the contents of a file in a terminal','l
 /* ---------- cat, rm and mkdir, with GNU's messages; the work is the engine's ---------- */
 function why(n){return !n?'No such file or directory':n.type==='d'?'Is a directory':'Permission denied'}
 cmd('cat','/usr/bin','concatenate files and print on the standard output','cat [OPTION]... [FILE]...','prints each file in turn, or its standard input. -n numbers the lines.',function(a){
-  var o=opts(a),num=o.has('n','number'),k=0,bad=false;
-  function put(L){P.say(num?L.map(function(l){return String(++k).padStart(6)+'\t'+l}):L)}
+  var o=opts(a),num=o.has('n','number'),k=0,bad=false,cont=false;
+  function put(L){ /* a last line with no newline stays open, and the next file goes on in it without a number of its own */
+    var R=num?L.map(function(l,i){return i||!cont?String(++k).padStart(6)+'\t'+l:l}):L;R.open=L.open;if(L.length)cont=!!L.open;P.say(R)}
   if(!o.ops.length){P.input([],put);return}
   var kb=false; /* once - has read the keyboard, the rest waits for it */
   o.ops.forEach(function(x){
@@ -576,6 +620,7 @@ function procs(){ /* user, pid, ppid, vsz, rss, tty, stat, start, time, command 
     [P.st.user,656,655,21308,3428,'?','S',l,'0:00','(sd-pam)'],[P.st.user,662,553,8084,4864,'ttyS0','S',l,'0:00','-bash']];
   return R;
 }
+P.procs=function(){return procs().map(function(r){return {pid:r[1],mine:r[0]===P.st.user,cmd:r[9]}})}; /* for kill and $$ */
 function comm(c){return c.replace(/^-/,'').split(' ')[0].replace(/^.*\//,'').replace(/^\[(.*)\]$/,'$1')} /* the command's name, as ps and top show it */
 function self(c){return [P.st.user,P.pidNow()||P.newPid(),662,11076,4224,'ttyS0','R+',hm(P.now()),'0:00',c]}
 function bgRows(me){return P.jobs().filter(function(j){return j.pid!==me}).map(function(j){return [P.st.user,j.pid,662,5476,1792,'ttyS0',j.stopped?'T':'S',hm(j.start),'0:00',j.cmd]})} /* what was started with &: sleeping, or stopped */

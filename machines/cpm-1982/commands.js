@@ -16,13 +16,14 @@ function write(k,L,full){ /* full: what to say when the name is another user are
   var g=get(k);k=g?g.name:P.fcb.cut(k); /* the file its eight and three find, or a new one cut to them, as the FCB holds it */
   var o=P.root.kids[k];
   if(o&&!o.prot&&(o.user||0)!==user){P.typeLine(full||'NO DIRECTORY SPACE');return}
-  if(!P.writeFile(k,L,false)){P.typeLine('BDOS ERR ON A: FILE R/O');return}
+  if(!P.writeFile(k,L,false)){bdos('A','File R/O');return}
   var n=P.root.kids[k];
   if(n)n.user=user;
 }
 function matcher(pat){return P.fcb.matcher(pat.toLowerCase().replace(/^a:/,''))}
-function bdos(d,why){ /* the classic: a drive that is not there, and a key, ctrl-c or any other, gets you out */
-  P.typeLine('BDOS ERR ON '+d+': '+(why||'SELECT'));
+function bdos(d,why){ /* the classic: a drive that is not there, or a file set R/O, and a key, ctrl-c or any other, gets you
+  out. The words are 2.2's BDOS (dskmsg, selmsg, rofmsg), in its own case */
+  P.typeLine('Bdos Err On '+d+': '+(why||'Select'));
   P.queue(function(){return P.readKey('')});
 }
 function elsewhere(x){ /* a name on a drive that is not there: the error, and true */
@@ -52,7 +53,11 @@ cmd(['type'],'print a file',function(a,raw,w){
   if(n.bin){P.typeLine('\u00c3\u0000\u00cd\u0005\u0000\u00c9');return}
   P.say(P.text(n));
 });
-function eraseAll(m){files().filter(m).forEach(function(k){var n=P.root.kids[k];if(!n.prot)delete P.root.kids[k]})}
+function eraseAll(m){ /* the BDOS stops at the first read-only file: STAT NAME $R/W first */
+  var F=files().filter(m),N=F.map(function(k){return P.root.kids[k]});
+  if(N.some(function(n){return !n.prot&&!P.mayAlter(n)})){bdos('A','File R/O');return}
+  F.forEach(function(k,i){if(!N[i].prot)delete P.root.kids[k]});
+}
 cmd(['era'],null,function(a,raw,w){
   if(!w[1]){P.typeLine('ERA?');return}
   var pat=arg(w,1),m=matcher(pat);
@@ -70,7 +75,7 @@ cmd(['ren'],null,function(a,raw,w){ /* backwards, as it should be: REN NEW=OLD *
   q=q.map(function(x){return x.replace(/^a:/i,'')});
   var n=get(q[2]),to=P.fcb.cut(q[1]);
   if(!n){P.typeLine('NO FILE');return}
-  if(n.prot){P.typeLine('BDOS ERR ON A: FILE R/O');return}
+  if(n.prot||!P.mayAlter(n)){bdos('A','File R/O');return}
   if(P.root.kids[to]||get(q[1])){P.typeLine('FILE EXISTS');return} /* in any user area: one name, one file here */
   delete P.root.kids[n.name];n.name=to;P.root.kids[to]=n;
 });
@@ -86,9 +91,15 @@ cmd(['save'],null,function(a,raw,w){
 cmd(['stat'],null,function(a,raw,w){
   if(elsewhere(w[1]))return;
   if(w[1]){
-    var m=matcher(arg(w,1)),F=files().filter(m);
+    var m=matcher(arg(w,1)),F=files().filter(m),to=arg(w,2);
     if(!F.length){P.typeLine('File Not Found');return}
-    P.say([' Recs  Bytes  Ext Acc'].concat(F.map(function(k){var sz=P.fsize(P.root.kids[k]);return String(Math.ceil(sz/128)).padStart(5)+String(Math.ceil(sz/1024)).padStart(6)+'k   1 R/W A:'+fcb(k).replace(/ +/,'.').replace(/\.$/,'')}),['Bytes Remaining On A: '+free()+'k']));
+    function nm(k){return 'A:'+fcb(k).replace(/ +/,'.').replace(/\.$/,'')}
+    if(to){ /* STAT NAME $R/O or $R/W: the file's read-only indicator, anyone's to set */
+      if(!/^\$r\/[ow]$/.test(to)){P.typeLine((raw.trim()+'?').toUpperCase());return}
+      P.say(F.map(function(k){var n=P.root.kids[k];if(to==='$r/o')n.ro=true;else delete n.ro;return nm(k)+' set to '+to.slice(1).toUpperCase()}));
+      return;
+    }
+    P.say([' Recs  Bytes  Ext Acc'].concat(F.map(function(k){var n=P.root.kids[k],sz=P.fsize(n);return String(Math.ceil(sz/128)).padStart(5)+String(Math.ceil(sz/1024)).padStart(6)+'k   1 '+(n.ro?'R/O':'R/W')+' '+nm(k)}),['Bytes Remaining On A: '+free()+'k']));
     return;
   }
   P.typeLine('A: R/W, Space: '+free()+'k');

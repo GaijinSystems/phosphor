@@ -98,10 +98,12 @@ At the top of a file, before its first `== section ==`, one per line:
 | `uppercase:` | `yes` prints everything in capitals, like an uppercase-only teletype; `no` does not. Without this line, `yes`. |
 | `prompt:` | The shell prompt, normally `$ `. Use quotes to keep a trailing space: `prompt: "% "`. It replaces the prompt on V7, 4.3BSD and VMS; the other machines make their own. |
 | `sound:` | `on`: keyclicks from the first tap or keypress. `off`: silent until `sound on`. |
+| `teletype:` | `yes` offers visitors of the V7 machine a Teletype Model 33 instead of the video terminal, with the `teletype` command (`teletype on`, `teletype off`; off until they turn it on, and their browser remembers): paper speed, capitals only and its sounds; see [Version 7 Unix](#version-7-unix). The other machines ignore it and have no `teletype` command. Without this line, `no`. |
 | `effects:` | `auto` (the default), `full` or `lite`; see [Looks](#looks). A visitor's own choice with the `effects` command wins in their browser. |
 | `source:` | Where the `source` command points. Must start with `http://` or `https://`. See [Licence](#licence). |
 | `commands:` | Switch commands off or on: `commands: -ping, -sudo`. Works on the built-in commands, the machine's (`-sudo`) and the games (`-rogue`); see [Switching a game off](#switching-a-game-off). Without the `-`, it switches back on one the machine has switched off (`commands: vi`). Your own `== command: ==` sections are never switched off, so delete those instead. |
 | `protected:` | Locked files and folders: listed (by `ls`, `DIR` and the like), but they will not open, and each machine says so in its own words: `cat: can't open secrets` on V7, `secrets: Permission denied` on 4.3BSD, `cat: secrets: Permission denied` on Debian, `-RMS-E-PRV` on VMS, `Access denied` on MS-DOS. Paths work (`.trash/core`); a trailing `/` makes a locked folder. |
+| `persist:` | `yes` (the default) keeps what visitors do to the files in their browser, so their next visit finds it; see [Saves](#saves). `no`: a reload puts every file back as the site gave it. |
 | `machine:` `machines:` | Which machine the terminal starts on, and which ones the `connect` command offers: `machines: v7, bsd`. Unset, the first and all of them. With one machine there is no `connect`. `machine: random` picks one of the allowed machines when the address doesn't name one, and keeps that pick for the rest of the browser tab, so a reload boots the same machine and a new tab picks again. The Commodore 128 and the bulletin board sit out the draw: give a machine `random:false` in `machines/machines.js` to leave it out the same way. The address, `connect` and these settings still reach it, and if only such machines are allowed, random picks among them. |
 | `hostname:` | The machine's name. Normally taken from your domain (`example.com` becomes `example`). |
 | `year:` | One year for every machine, its clock and `{year}`, in place of each machine's own (Debian's too, which otherwise takes the visitor's). Best left unset. |
@@ -129,6 +131,7 @@ A line like `== welcome ==` starts a section; the lines after it are printed as 
 | `== command: NAME \| HELP ==` | A new command that prints the section. `NAME, OTHER` gives it two names. Without help text it is hidden from `help`. It replaces a built-in of the same name, except the core ones (`help`, `man`, `clear`, `ls`, `cat`, `sound`, `cd`, `pwd`, `echo`, `mail`, `alias`, `source`): switch one of those off first (`commands: -mail`) and yours takes its place. |
 | `== man: NAME ==` | The description part of a manual page. Replaces a built-in page or adds a new one. |
 | `== boot ==` | A machine coming up after power-on, a line at a time; `text @300` waits 300 ms after the line. |
+| `== boot: ID ==` | The boot for the machines named, by the ids `machine:` and `machines:` use: `== boot: linux, bsd ==`. On those machines it is used in place of a plain `== boot ==`, whichever comes first in the file. An id that no machine has is reported on screen at start. |
 | `== aliases ==` | Shortcuts, one per line: `ll = ls -l`, or `cl = clear ; ls`. Only useful on a machine whose shell had aliases; the 1979 machine has none. |
 | `== board ==` | The bulletin board's settings, one per line: `name:` (Afterglow BBS), `number:` (555-0142), `sysop:` ({owner}), `node:` (1, the node number in the box a caller sees first) and `password:` (the sysop's). Unset, the defaults in brackets. |
 
@@ -160,7 +163,7 @@ a little extra space between them.
 `help` lists what a visitor needs to get around, including `fill`, which puts the cable
 away and makes the monitor, bezel and all, as big as the window allows (`fill` again puts it back; the browser remembers),
 and `effects`, which shows or switches the tube effects (`effects lite`, `full` or `auto`; see
-[Looks](#looks)).
+[Looks](#looks)). Where the site offers it (`teletype: yes`), the V7 machine's `help` also lists `teletype`.
 Behind it, each machine has the commands
 its real system had, and no others apart from the terminal's own: on the
 1979 machine there is no `vi`, and `whoami` is `who am i`. Explore; you know if you know.
@@ -171,9 +174,19 @@ machine's:": `about`, `mail`, `source`, `sound`, `fill`, `effects`, `connect` an
 `sound`, `effects`, `connect` and `source`: its disk has `ABOUT` and `LETTER` programs), their manual pages say so, and the Unix machines have no program file
 for them, so a file of the same name never takes their place.
 
-The shell understands pipes, redirection, quotes, variables, wildcards and scripts. Visitors
-can change files in their home folder and `/tmp`, and a reload puts everything back. A file holds
-at most 4 MB; past that, the write stops and the machine says its disk is full.
+The shell understands pipes, redirection, here-documents, quotes, variables, wildcards and scripts (and bash's
+arithmetic and arrays). Visitors can make files in their home folder and `/tmp`, and change or remove the ones they
+made. The files the site gives (your `== file: ==` sections, and the home files each machine ships, such as `.profile`
+or `LOGIN.COM`) and the system's files are someone else's: visitors can read and copy them, but writing to one,
+removing, renaming or `chmod`-ing it is refused in the machine's own words (`cannot create` and `not removed` on V7,
+`Permission denied` on 4.3BSD, IRIX and Debian, `-RMS-E-PRV` on VMS, `?Delete access required` on TOPS-20), and `ls -l`
+shows them as the site owner's (`{owner}`) or root's. On MS-DOS and CP/M, which have no owners, they carry the read-only
+attribute instead (`ATTRIB` shows `R`, `STAT` shows `R/O`), and `Access denied`, `File creation error` and
+`Bdos Err On A: File R/O` refuse them, but as on the real thing anyone may take it off with `ATTRIB -R NAME` or
+`STAT NAME $R/W`. The machine's privileged user (`root` after `su` on the Unix machines, `SYSTEM` on VMS, an `ENABLE`d
+`OPERATOR` on TOPS-20) can change, overwrite or remove anything: root can break things. What visitors change is kept in
+their browser (see [Saves](#saves)) unless `persist: no` is set, in which case a reload puts everything back. A file
+holds at most 4 MB; past that, the write stops and the machine says its disk is full.
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
 something else to GNU's tools, the usage line is `ls --help`. The Linux machine's bash also
@@ -219,6 +232,39 @@ the sudoers file, so `sudo` and `apt install` say no, as they would. `su` (or `s
 Each folder's `machine.js` holds its settings and text (the
 self-test, the boot log, `dmesg`, the `ps` table), `fs.js` builds its system folders, and
 `later.js`, where it has one, names its games.
+
+### Version 7 Unix
+
+With `teletype: yes` in `site/config.js` the V7 machine has a `teletype` command: `teletype on` puts the visitor on a
+Teletype Model 33 ASR, as many PDP-11 consoles were, `teletype off` goes back to the glass, and `teletype` alone says
+which is in use. It is off until the visitor turns it on; their browser remembers the choice, as it does `effects`.
+The other machines, and V7 without the setting, have no such command. The teletype is set up the way V7's `getty` set
+the console teletype, again at each login (`stty` says `speed 110 baud`, `erase = '#'; kill = '@'`,
+`even odd -nl echo lcase -tabs cr1`):
+
+- It prints ten characters a second (110 baud with two stop bits), and every line ends with a carriage return
+  and a line feed, with the five clock ticks V7 waited for the carriage (`cr1`, which `stty tty33` sets). Ctrl-S stops
+  the printer and Ctrl-Q, or any other key, starts it again; Ctrl-C (or Delete, the teletype's RUB OUT) stops the
+  output and, as V7 did, throws away what was typed ahead.
+- The paper is 72 columns wide and V7 did no wrapping: what goes past the 72nd column strikes over it. V7 sent seven
+  bits a character, so a character beyond ASCII prints as the low seven bits of each of its bytes (`é` as `C)`).
+- Capitals only. The keyboard has no small letters and no `` ` { | } ~ `` keys; with V7's `lcase` the capitals it sends
+  are taken as small letters, a capital is typed as `\A`, and `` ` { | } ~ `` are typed and printed as `\'`, `\(`,
+  `\!`, `\)` and `\^` (so a pipe is `\!`). Small letters print as capitals. `stty -lcase` turns this off, after which
+  `ECHO` is not `echo`, and there is no small letter to type `stty lcase` with: log out, and the login turns it on again.
+- There is no backspace: `#` erases the character before it and `@` the whole line, as V7 did; Backspace types the
+  erase character. They are printed, not rubbed out, as on paper, and typing goes on only at the end of the line;
+  `\#` and `\@` are the characters themselves. The `@` is followed by a new line, even after a `\`, as V7 echoed it.
+- `stty erase x` and `stty kill x` (`^h` for a control character) change the two, and `stty ek` puts them back.
+  `stty -echo` stops the echo; `stty cbreak` and `stty raw` hand over what is typed as it is, with nothing erased or
+  killed, and `raw` sends `` ` { | } ~ `` out unescaped. The shell still reads a line at a time, and Ctrl-C still
+  interrupts. `stty 0` hangs up the line, which logs out. The up and down arrows give back lines as they were typed on
+  the teletype.
+- With the sound on, every character clacks, the carriage thunks back and a BEL rings the bell (Ctrl-G at the prompt
+  puts one in the line), all made in the browser and silent until the visitor's first tap or key. There is no
+  self-test (a teletype has none), and logging out leaves the paper as it is.
+
+The page still shows the monitor and its glowing tube; only the way the text comes out changes.
 
 ### TOPS-20
 
@@ -277,10 +323,32 @@ machine. CMSBATCH, the batch machine, sits disconnected with the password BATCH,
 OPERATOR's password is there too, but the operator is logged on at the console. Only MAINT opens the locked files.
 The empty line is the machine's:
 its `cms.js` sets `Phosphor.blank`, which the engine calls instead of starting a new prompt when a line is empty.
-Ctrl-C is the attention key. At a running EXEC it gives a read, and the EXEC goes on typing above the line being
-typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the attention came is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing, and any other line is stacked
-for CMS, or for the EXEC's `&READ`. For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside
-a pending read, their output above the line being typed.
+Ctrl-C is the attention key. At a running CMS command or EXEC it gives a read, and the command goes on typing above the
+line being typed in, as Release 6 does; of the lines it had worked out, only the one being typed when the attention came
+is cut short: `HX` ends it, `HT` and `RT` stop and resume its typing (`HT` holds until the command is done), and any
+other line is stacked for CMS to read once the command is done, or for the command's own read, even one it had still to
+ask, as FORMAT's and SORT's questions are when the attention cuts them short. When the command is done its ready message
+comes, and CMS reads what is stacked first and waits for the attention's read only when nothing is left (DMSCRD), so
+those commands run beside it too, also after an attention while the ready message is being typed, and `HX` then ends
+only what is still running. The rest of a line split with the line end `#` waits in the console stack too, ahead of the
+line typed after an attention (DMSCRD stacks it), also when the attention comes while the ready message is being typed.
+The line typed after an attention is an Immediate command only when it is nothing else (`x#hx` is stacked), and a rest
+of just `HT` or `RT` is not stacked but acts as soon as CMS reads the line (DMSCAT): `type` of a long file with `#ht`
+after it types nothing. `#CP` alone at that read stops the virtual machine where it is, and `BEGIN` lets it go on, the
+read up again, with no ready message of its own (a line CMS had taken from the stack but not yet begun runs then).
+Another attention at that read only puts it up again. `LOGOFF`, `IPL` or `SYSTEM RESET` typed there, or done by an EXEC
+running beside it, ends all that was going on beside it once CP has typed what it says. `DISCONN` keeps the virtual
+machine: what it was doing runs on unseen (its output is lost, as on VM/370 without a spooled console), and a `LOGON`
+within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
+counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on.
+For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
+the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
+leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and what the
+command or EXEC types meanwhile comes below that line, where the carriage stayed: `cms.js` has
+`Phosphor.onInterrupt` answer `{says: '', same: true}`). A line half typed in when the attention comes is cancelled
+(CP signals it, and CMS's DMSCIT reads again): the half-typed line is thrown away, not sent, and an EXEC at its
+`&READ`, or the editor, carries on, taking the next line; at an empty read, or while the editor types, the attention
+is CMS's, so `HX` then ends the EXEC or the edit.
 The messages were checked against VM/370 Release 6 running under Hercules (the "SixPack"), and against IBM's
 Release 6 manuals wherever the SixPack has changed them. There is no 3270 full-screen terminal, and XEDIT,
 FILELIST, RDRLIST and REXX are not here: they came later, with VM/SP. A few words from the batch side of the machine
@@ -315,7 +383,8 @@ directory is kept in the browser (see [Saves](#saves)), up to the guest's quota 
 write says `Record quota overflow.` `Repair.SysAdmin` is the privileged account that reads and changes nearly
 everything: `login Repair` takes the `root password:` in `machines/multics-1981/machine.js` (with
 `root login: repair`), and the operators left it in an exec_com anyone may print. QUIT is the machine's: its
-`commands.js` sets `Phosphor.onInterrupt`, which the engine calls on Ctrl-C and whose answer it shows instead of `^C`.
+`commands.js` sets `Phosphor.onInterrupt`, which the engine calls on Ctrl-C and whose answer it shows instead of `^C`
+(an answer `{says, same: true}` also keeps the next prompt or read in the same line).
 
 The messages and formats were checked against Multics MR12.8 running under the DPS8M simulator, and against the
 MR8.0 manuals where the two differ: the 1980 banner, `Segment foo not found.`, `You are protected from preemption
@@ -478,7 +547,8 @@ catalog and offers all of them; with one machine in the list there is no `connec
      set besides the site's are `installed`, `user`, `homes` or `home`, `case`, `offline`,
      `shell` (`dos`, `dcl` or `bash`), `unix: no` (leave out the Unix commands), `csh`, `perror`,
      `login`, `login prompt`, `login failed`, `root login`, `root prompt`, `root password`, `also root`,
-     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns` and `disk full`; the
+     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns`, `disk full` and `signals`
+     (`irix`: IRIX's signal numbers and names); the
      machines between them use each one, so look there for an example. `root login` (normally
      `root`) with `root password` is an account that logs in as the super-user, at the `root prompt`
      (normally `# `), and the Unix machines' `su` takes the same password; at the login prompt it
@@ -724,12 +794,31 @@ VM/370's A-disk, what the guest wrote, renamed or erased on it, is kept under `p
 Multics guest's home directory under `phosphor-9/multics/home`: only what the guest made, changed or deleted, so the
 site's own files come back fresh, with any changes laid over them. The bulletin board keeps its callers, posts,
 wall lines, comments and door games under `phosphor-9/bbs/`.
-When the browser has no room left, the disks of the TRS-80, the Apple IIe and the C128 fail as a full disk did, and
-what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`, that it is out of memory), and
-a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error` in BASIC, `* * ERROR 18 * *`
-at TRSDOS); the Apple's `SAVE`, `BSAVE`, `OPEN` of a new text file and the `CLOSE` after a `WRITE` say `DISK FULL`, and
-its `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR`; and on the C128 `DSAVE` ends as usual but the drive
-status, `DS$`, says `72,DISK FULL,36,00`. A browser that keeps nothing at all still has the disk for the rest of the visit.
+On the other machines (V7, 4.3BSD, IRIX, Debian, MS-DOS, CP/M, VMS and TOPS-20), what changed in the files is kept under
+`phosphor-9/` and the machine's id, `phosphor-9/v7/files`, `phosphor-9/linux/files` and so on; a site that is not at the
+top of its web address adds its folder (`phosphor-9/v7/files:/mysite/` for `https://example.github.io/mysite/`), so
+sites that share one host keep apart. What is kept: what the visitor made, changed or removed in their home folder
+(or anywhere on the disk on MS-DOS and CP/M), and what root changed anywhere, system files included. A second name made
+with `ln` is kept as a link to the same file and comes back as one after a reload, and a moved file keeps what its old
+place gave it: a moved story file still plays, a moved device is still a device, and a file whose text is made as it is
+read (`/etc/passwd` and the like) still makes it, unless root wrote new text into it. `/tmp` is not kept: a reload is a
+reboot, and each of these systems emptied `/tmp` when it booted. Only the changes are kept, each with a note of what the
+file was when it booted, so when you change a file in `site/` (or a new release changes a system file) a visitor's copy
+of that file is dropped and your new version shows; their other changes stay. To start a machine over, clear the site's
+data in the browser; `persist: no` stops the keeping (what a browser has kept stays there, unused). Each machine keeps
+at most 256K characters, so the other machines and the games keep their room in the browser's storage (about 5 MB for
+each web address). When the changes outgrow that, or the browser's storage is full, the largest changed files are left
+out (they stay for the visit, and the rest is kept), and the machine says its disk is full in its own words
+(`no space on dev 6/0` on V7, `write error: No space left on device` on 4.3BSD, IRIX and Debian,
+`Insufficient disk space` on MS-DOS, `DISK WRITE ERROR` on CP/M, `%SYSTEM-F-EXDISKQUOTA` on VMS, `?Quota exceeded` on
+TOPS-20), once each time another file is left out; removing files says nothing. What the full browser left out is kept
+at the next prompt that finds room. When the browser has no room left, the disks of the TRS-80, the Apple IIe and the
+C128 fail as a full disk did, and what was being saved is not written: the TRS-80's BASIC says `Disk full` (and `CSAVE`,
+that it is out of memory), and a `KILL` or `RENAME` that cannot be kept fails as a directory write did (`Disk I/O error`
+in BASIC, `* * ERROR 18 * *` at TRSDOS); the Apple's `SAVE`, `BSAVE`, `OPEN` of a new text file and the `CLOSE` after a
+`WRITE` say `DISK FULL`, and its `DELETE`, `RENAME`, `LOCK`, `UNLOCK` and `INIT` say `I/O ERROR`; and on the C128
+`DSAVE` ends as usual but the drive status, `DS$`, says `72,DISK FULL,36,00`. A browser that keeps nothing at all still
+has the disk for the rest of the visit.
 
 ### Switching a game off
 
@@ -853,9 +942,11 @@ sends small `HEAD` requests for the page to your own server and times the answer
 off with `commands: -ping` if you would rather it did not.
 
 Games that kept a save or a score file in their day keep them in the visitor's own browser
-(`localStorage`; see [Saves](#saves)), as do the disks of the Apple IIe, the TRS-80 and the C128 and the guest's files on VM/370 and
-Multics. The bulletin board keeps the handle a caller picks, and what they post, there too. The `fill` and `effects` commands remember their settings there as well, and `machine: random`
-keeps its pick for the tab in the browser's session storage. Nothing is sent anywhere, and nothing else is stored.
+(`localStorage`; see [Saves](#saves)), as do the disks of the Apple IIe, the TRS-80 and the C128, the guest's files on
+VM/370 and Multics, and, unless `persist: no` is set, what visitors change in the files of the other machines. The
+bulletin board keeps the handle a caller picks, and what they post, there too. The `fill` and `effects` commands
+remember their settings there as well, and `machine: random` keeps its pick for the tab in the browser's session
+storage. Nothing is sent anywhere, and nothing else is stored.
 
 ## Upgrading
 

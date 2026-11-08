@@ -80,8 +80,8 @@ function bashAlias(W){ /* bash 5.2's alias builtin: each word is name=value, whi
 
 P.command({names:['echo'],core:true,path:'/bin',noHelpFlag:true, /* echo -h prints -h, as it should */
   man:{what:'echo arguments',syn:'echo [ -n ] [ arg ... ]',desc:[
-    'prints its arguments, separated by spaces. -n would leave the line open; here every line ends.']},
-  run:function(a,raw,words){P.typeLine(words.slice(words[1]==='-n'?2:1).join(' '))}});
+    'prints its arguments, separated by spaces, and ends the line. -n leaves the line open: what comes next goes on in it.']},
+  run:function(a,raw,words){var n=words[1]==='-n';P.typeLine(words.slice(n?2:1).join(' '),null,null,n?{open:true}:null)}});
 
 P.command({names:['clear'],core:true,help:'clear the screen',
   man:{what:'clear the screen',syn:'clear',desc:[
@@ -92,6 +92,7 @@ P.command({names:['exit','logout'],help:'log out',
   man:{what:'log out',syn:'exit',desc:[
     'ends the session. the terminal runs its self-test and waits at login: for a new name. any name will do, within reason.']},
   run:function(a){
+    if(P.subExit(a))return; /* ( ... exit 3 ): the subshell ends there, with that status */
     if(P.subshell())return; /* a stage of a pipeline is its own process, and only that process exits */
     if(P.inScript()){P.status(parseInt(a[0],10)||0);P.loop('exit');return} /* exit in a script ends the script */
     if(P.unsu())return; /* out of su, back to who you were */

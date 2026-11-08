@@ -40,6 +40,10 @@ sound:     on
 # Visitors can switch with the effects command.
 effects:   auto
 
+# yes = the V7 machine offers a teletype command: each visitor can have the V7 machine print
+# as a Teletype Model 33 would (off until they turn it on). The other machines ignore it.
+teletype:  yes
+
 # Where the source command sends people. The licence (GNU AGPL) asks that anyone using
 # a changed copy can get its source: if you change the code, point this at your copy.
 source:    https://github.com/GaijinSystems/phosphor
@@ -54,6 +58,10 @@ commands:
 # in each machine's own words, unless you are root where there is one. Paths work
 # (.trash/core); a trailing / makes a locked folder.
 protected: photo01.pic, photo02.pic, secrets, .trash/core
+
+# What visitors change in the files (their own, and whatever root changes) is kept in their
+# browser for their next visit. Without this line: yes. no = a reload puts every file back.
+# persist:  no
 
 # The coiled cable under the monitor: turns is a count (desktop: the count on a wide screen;
 # turns is used on phones and wherever desktop is unset); the rest are in screen pixels.
