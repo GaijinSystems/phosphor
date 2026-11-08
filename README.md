@@ -174,7 +174,8 @@ machine's:": `about`, `mail`, `source`, `sound`, `fill`, `effects`, `connect` an
 `sound`, `effects`, `connect` and `source`: its disk has `ABOUT` and `LETTER` programs), their manual pages say so, and the Unix machines have no program file
 for them, so a file of the same name never takes their place.
 
-The shell understands pipes, redirection, quotes, variables, wildcards and scripts. Visitors can make files in their
+The shell understands pipes, redirection, here-documents, quotes, variables, wildcards and scripts (and bash's
+arithmetic and arrays). Visitors can make files in their
 home folder and `/tmp`, and change or remove the ones they made. The files the site gives (your `== file: ==` sections,
 and the home files each machine ships, such as `.profile` or `LOGIN.COM`) and the system's files are someone else's:
 visitors can read and copy them, but writing to one, removing, renaming or `chmod`-ing it is refused in the machine's

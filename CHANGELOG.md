@@ -266,6 +266,17 @@ behind gaijin.systems.
   began on an earlier line, and a here-document's word (`<<'EOF'`, `<<"EOF"`) no longer hides the lines after it from
   the check. GNU grep reads `-` as its input; `wc` of a directory on V7, 4.3BSD and IRIX counts its entries' bytes, as
   their `wc` read them. `x=1` on CP/M and MS-DOS is a command like any other (`X=1?`, `Bad command or file name`).
+- Here-documents in all three shells: `<<EOF` in bash and V7 sh (bash also `<<-EOF`, which drops the tabs before each
+  line; V7 reads `-EOF` as the word) and `<< word` in csh, typed after the shell's `>` prompt (csh's `heredoc` reads
+  them with none) or in a script, with pipes, redirection, loops and `&`. A quote in the word keeps the lines as they
+  are; otherwise `$names` and `` `commands` `` (and bash's `$( )` and `$(( ))`) are worked out each time the command
+  runs. csh's last line has to be the word as typed, quotes and all. bash warns when the end of input ends one, and
+  its `jobs` shows the lines. bash's `$(( ))` has all of its operators, assignments, `++` and `--`, 64-bit numbers,
+  `0x`, octal and `base#n`, names with or without `$`, and its error messages, after which nothing more of the line
+  runs (status 1); `$y` before a `$((y++))` is the value before, and a `$( )` may hold another `$( )`. `time` alone
+  prints its zeros. bash has indexed and associative arrays: `x=(a b)`, `x[3]=d`, `x+=(e)`, `${x[1]}`, `${x[@]}` (a
+  word each in `"${x[@]}"`), `${#x[@]}`, `${!x[@]}`, `${#x}`, `unset 'x[1]'`, `declare -a`, `declare -A` (its keys in
+  bash's own order) and `declare -p`.
 - `x = 1` and `x=1` on VM/370, Multics and TOPS-20 are lines like any other for the machine to answer; only VMS takes
   them as a symbol without a word. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
   blanks and all.
