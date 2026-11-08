@@ -190,8 +190,9 @@ holds at most 4 MB; past that, the write stops and the machine says its disk is 
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
 something else to GNU's tools, the usage line is `ls --help`. The Linux machine's bash also
-completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`; the C shell of 4.3BSD
-and IRIX has `!!` and `history` too. PageUp and PageDown scroll back through the output
+completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`, `[[ ]]`, `(( ))`,
+`let`, `printf` and `{a,b}` brace expansion; the C shell of 4.3BSD and IRIX has `!!`, `history` and `{a,b}` too. On
+4.3BSD, `sh` starts the Bourne shell, as `/bin/sh` did there; `exit` or ^D goes back to the C shell. PageUp and PageDown scroll back through the output
 once it has finished typing.
 
 To add a command that prints text, use a `== command: ==` section. To add one that does
@@ -340,7 +341,9 @@ Another attention at that read only puts it up again. `LOGOFF`, `IPL` or `SYSTEM
 running beside it, ends all that was going on beside it once CP has typed what it says. `DISCONN` keeps the virtual
 machine: what it was doing runs on unseen (its output is lost, as on VM/370 without a spooled console), and a `LOGON`
 within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
-counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on.
+counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on. A read it makes
+meanwhile, an EXEC's or the editor's, waits for that and then takes the next line typed. `DISCONN HOLD`, which kept a
+dial-up line from being dropped, looks the same here.
 For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
 the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
 leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and what the
