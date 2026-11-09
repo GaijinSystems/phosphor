@@ -106,7 +106,8 @@ behind gaijin.systems.
   (`https://example.github.io/`).
 - On the Unix machines the guest's home folder is the guest's, and so are the shell startup files in it (`.profile`,
   `.cshrc`, `.bashrc` and the rest): the guest may change or remove them, and their changes are kept
-  like any other. A new `guest files:` setting gives the guest more of the site's files and folders the same way. Every
+  like any other. A new `guest files:` setting gives the guest more of the site's files and folders the same way,
+  though one named inside a folder that stays the site owner's (`notes/todo`) can be changed but not renamed or removed. Every
   other site file and folder stays the site owner's, read-only in its mode (`-r--r--r--`, `dr-xr-xr-x`, `-r--------`
   when locked), so the guest cannot add to or take from its folders. On Debian they also carry the immutable attribute:
   new `lsattr` and `chattr` (e2fsprogs 1.47), refusals in Linux's words (`Operation not permitted`), and root too is
