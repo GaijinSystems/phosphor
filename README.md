@@ -221,6 +221,9 @@ Phosphor.command({names:['roll'],help:'roll a die',
   run:function(args){ Phosphor.typeLine(String(1+Math.floor(Math.random()*6))) }});
 ```
 
+`man` may also be a function of the machine's settings that returns the page, for a page that differs by machine
+(see `ls` in `engine/commands/files.js`).
+
 ## The machines
 
 | Name | Machine | Year | Its games |

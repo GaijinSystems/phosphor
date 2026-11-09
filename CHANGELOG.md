@@ -308,5 +308,8 @@ behind gaijin.systems.
 - `x = 1` and `x=1` on VM/370, Multics and TOPS-20 are lines like any other for the machine to answer; only VMS takes
   them as a symbol assignment. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
   blanks and all.
+- `ls -R` lists folders inside folders as each system did: 4.3BSD (`notes:`), IRIX (`./notes:`) and Debian (`.:` first,
+  `--recursive` too, `total` for each with `-l`, hidden folders only with `-a` or `-A`, never through a link); never
+  `.` or `..`, not with `-d`, and not round a loop. V7's ls had no `-R` and skips any letter it does not know, `-F` too.
 - The C128 keeps its ROM's secret, and the Apple IIe and the Commodores have opinions about other machines.
 - The TRS-80, VM/370, Multics and the bulletin board have a few things of their own for the curious to find.
