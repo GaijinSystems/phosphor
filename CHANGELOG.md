@@ -98,15 +98,18 @@ behind gaijin.systems.
   an enabled `OPERATOR`) can change or remove them. MS-DOS and CP/M mark them read-only instead, and `ATTRIB -R` and
   `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder. A second name
   made with `ln` is kept as a link and comes back as one after a reload, and a moved file keeps what made it work (a
-  story file, a device). Each machine keeps at most 256K characters; what does not fit is left out, largest first,
-  and the disk is said to be full once for it. A site keeps its own saves when other sites share its host
+  story file, a device); one moved and not changed is kept by where it came from, and gives way as the file does.
+  A folder of the visitor's where the site has since put a file is left out, and the machine's `mkdir` says so at
+  boot. Each machine keeps at most 256K characters; what does not fit is left out, largest first,
+  and the disk is said to be full once for it, naming the program that wrote it. A site keeps its own saves when other sites share its host
   (`https://example.github.io/`).
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
 - `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
   off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
   line end, 72 columns, capitals only through V7's `lcase` mapping (`\!` for a pipe), `#` to erase a character and `@`
   to kill the line, the clack, carriage return and bell made in the browser, and `stty` that reports the line and
-  changes `lcase`, `echo`, `cbreak`, `raw` and the erase and kill characters, and hangs up at `stty 0`.
+  changes `lcase`, `echo`, `cbreak`, `raw` and the erase and kill characters, and hangs up at `stty 0`. Tabs go out as
+  spaces, as V7's `-tabs` had them, and with `-echo` the output follows the prompt on the same line.
 - File names, commands and aliases follow the machine's `case:` setting; Unix is case-sensitive.
 - Glow colours follow `--phos-rgb`, `--dim-rgb` and `--err-rgb`, so a theme recolours the
   whole tube, and the amber example is one line.
