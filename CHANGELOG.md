@@ -11,7 +11,8 @@ behind gaijin.systems.
   `site/` (your content), loaded by plain `<script>` tags: works opened from disk.
 - Built-in commands live in `engine/commands/`; switch any of them off with `commands:`.
 - The whole letter is content now (`== mail ==`), not just its project list.
-- `{site}`, `{hostname}`, `{owner}`, `{email}` and `{year}` placeholders in any section's text.
+- `{site}`, `{hostname}`, `{owner}`, `{email}` and `{year}` placeholders in any section's text. On the machine that keeps
+  the visitor's own time, a struck date followed by a `{year}` date (`~~2025-06-01~~ {year}-06-01`) shows only the real date.
 - New settings: `title`, `badge`, `source`, `commands`, `hostname`, `prompt`; machine settings
   `year`, `installed`, `user`, `offline`.
 - New `source` command, pointing at the terminal's source code (GNU AGPL).
