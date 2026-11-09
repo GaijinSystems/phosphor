@@ -103,6 +103,7 @@ At the top of a file, before its first `== section ==`, one per line:
 | `source:` | Where the `source` command points. Must start with `http://` or `https://`. See [Licence](#licence). |
 | `commands:` | Switch commands off or on: `commands: -ping, -sudo`. Works on the built-in commands, the machine's (`-sudo`) and the games (`-rogue`); see [Switching a game off](#switching-a-game-off). Without the `-`, it switches back on one the machine has switched off (`commands: vi`). Your own `== command: ==` sections are never switched off, so delete those instead. |
 | `protected:` | Locked files and folders: listed (by `ls`, `DIR` and the like), but they will not open, and each machine says so in its own words: `cat: can't open secrets` on V7, `secrets: Permission denied` on 4.3BSD, `cat: secrets: Permission denied` on Debian, `-RMS-E-PRV` on VMS, `Access denied` on MS-DOS. Paths work (`.trash/core`); a trailing `/` makes a locked folder. |
+| `guest files:` | Files and folders in the home that are the guest's own: `guest files: .profile, .trash`. On the Unix machines they belong to the guest, with ordinary modes (`-rw-r--r--`), and the guest can change, rename or remove them, and add to a folder named here (which covers everything in it); what they change is kept like the rest of their files (see [Saves](#saves)). A locked file stays the site owner's, even in one of these folders. The shell startup files (`.profile`, `.bashrc`, `.cshrc` and so on) are the guest's already. Unset, everything else the site gives is the site owner's and read-only; see [Commands](#commands). |
 | `persist:` | `yes` (the default) keeps what visitors do to the files in their browser, so their next visit finds it; see [Saves](#saves). `no`: a reload puts every file back as the site gave it. |
 | `machine:` `machines:` | Which machine the terminal starts on, and which ones the `connect` command offers: `machines: v7, bsd`. Unset, the first and all of them. With one machine there is no `connect`. `machine: random` picks one of the allowed machines when the address doesn't name one, and keeps that pick for the rest of the browser tab, so a reload boots the same machine and a new tab picks again. The Commodore 128 and the bulletin board sit out the draw: give a machine `random:false` in `machines/machines.js` to leave it out the same way. The address, `connect` and these settings still reach it, and if only such machines are allowed, random picks among them. |
 | `hostname:` | The machine's name. Normally taken from your domain (`example.com` becomes `example`). |
@@ -113,7 +114,7 @@ At the top of a file, before its first `== section ==`, one per line:
 A machine's year lives in `machines/machines.js` (unless `year:` is set), and `{year}` in any text follows it.
 There is no `fill:` setting: `fill` is the visitor's command, and their browser remembers it (`phosphor-9/fill`);
 commands are switched off with `commands:`. The
-machine sets a few more (`installed:`, `user:`, `homes:`, `case:`, `offline:`);
+machine sets a few more (`installed:`, `user:`, `homes:`, `case:`, `offline:`, and the `guest files:` it ships);
 you can override those too. `case:` is `sensitive`, where `FILE` and `file` differ, as on
 Unix, or `ignore`, where they are the same, as on DOS.
 
@@ -181,15 +182,25 @@ for them, so a file of the same name never takes their place.
 
 The shell understands pipes, redirection, here-documents, quotes, variables, wildcards and scripts (and bash's
 arithmetic and arrays). Visitors can make files in their home folder and `/tmp`, and change or remove the ones they
-made. The files the site gives (your `== file: ==` sections, and the home files each machine ships, such as `.profile`
-or `LOGIN.COM`) and the system's files are someone else's: visitors can read and copy them, but writing to one,
-removing, renaming or `chmod`-ing it is refused in the machine's own words (`cannot create` and `not removed` on V7,
-`Permission denied` on 4.3BSD, IRIX and Debian, `-RMS-E-PRV` on VMS, `?Delete access required` on TOPS-20), and `ls -l`
-shows them as the site owner's (`{owner}`) or root's. On MS-DOS and CP/M, which have no owners, they carry the read-only
+made. On the Unix machines (V7, 4.3BSD, IRIX and Debian) the home folder is the guest's (`guest` in `ls -la`, and
+`guest guest` on Debian), and so are the shell startup files in it, the machine's or the site's (`.profile` for sh,
+`.cshrc`, `.login` and `.logout` for csh on 4.3BSD and IRIX, `.bashrc`, `.profile` and `.bash_logout` on Debian), and
+whatever `guest files:` names: the guest may change or remove them like their own. Every other file and folder the site gives (your `== file: ==` sections, and the
+machine's `readme`) is the site owner's (`{owner}`) and read-only in its mode: `-r--r--r--` for a file, `dr-xr-xr-x` for
+a folder, so nothing can be added to it or taken from it, and `-r--------` for a locked one. On Debian they also carry
+the immutable attribute an administrator would set to keep a file in someone else's home safe (`chattr +i`; `lsattr`
+shows `----i---------e-------`): writing, removing, renaming or `chmod`-ing one is refused as Linux refuses it
+(`rm: cannot remove 'readme': Operation not permitted`, `bash: readme: Operation not permitted`), even for root, until
+root clears it with `chattr -i`. V7, 4.3BSD and IRIX had no such attribute: there a file of someone else's in your own
+folder could be removed (after a question about its mode), and these machines refuse it anyway, in their own words
+(`cannot create` and `not removed` on V7, `Permission denied` on 4.3BSD and IRIX). That is where they part from the
+real systems. The system's files are root's, and refused the same way. On the other machines the files the site gives
+(and the home files each machine ships, such as `LOGIN.COM`) are someone else's in the same way (`-RMS-E-PRV` on VMS,
+`?Delete access required` on TOPS-20). On MS-DOS and CP/M, which have no owners, they carry the read-only
 attribute instead (`ATTRIB` shows `R`, `STAT` shows `R/O`), and `Access denied`, `File creation error` and
 `Bdos Err On A: File R/O` refuse them, but as on the real thing anyone may take it off with `ATTRIB -R NAME` or
 `STAT NAME $R/W`. The machine's privileged user (`root` after `su` on the Unix machines, `SYSTEM` on VMS, an `ENABLE`d
-`OPERATOR` on TOPS-20) can change, overwrite or remove anything: root can break things. What visitors change is kept in
+`OPERATOR` on TOPS-20) can change, overwrite or remove anything (on Debian, after `chattr -i`): root can break things. What visitors change is kept in
 their browser (see [Saves](#saves)) unless `persist: no` is set, in which case a reload puts everything back. A file
 holds at most 4 MB; past that, the write stops and the machine says its disk is full.
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
@@ -808,7 +819,9 @@ On the other machines (V7, 4.3BSD, IRIX, Debian, MS-DOS, CP/M, VMS and TOPS-20),
 `phosphor-9/` and the machine's id, `phosphor-9/v7/files`, `phosphor-9/linux/files` and so on; a site that is not at the
 top of its web address adds its folder (`phosphor-9/v7/files:/mysite/` for `https://example.github.io/mysite/`), so
 sites that share one host keep apart. What is kept: what the visitor made, changed or removed in their home folder
-(or anywhere on the disk on MS-DOS and CP/M), and what root changed anywhere, system files included. A second name made
+(or anywhere on the disk on MS-DOS and CP/M), the guest's own files there among them (their startup files and
+`guest files:`), and what root changed anywhere, system files included, and on Debian the immutable attribute root set
+or cleared. A second name made
 with `ln` is kept as a link to the same file and comes back as one after a reload, and a moved file keeps what its old
 place gave it: a moved story file still plays, a moved device is still a device, and a file whose text is made as it is
 read (`/etc/passwd` and the like) still makes it, unless root wrote new text into it. A file moved and not changed is
