@@ -111,7 +111,9 @@ behind gaijin.systems.
   other site file and folder stays the site owner's, read-only in its mode (`-r--r--r--`, `dr-xr-xr-x`, `-r--------`
   when locked), so the guest cannot add to or take from its folders. On Debian they also carry the immutable attribute:
   new `lsattr` and `chattr` (e2fsprogs 1.47), refusals in Linux's words (`Operation not permitted`), and root too is
-  refused until `chattr -i`.
+  refused until `chattr -i`. Only the file's owner or root may `chmod` it, and never through a locked folder. Logging
+  in under a system account's name (`bin`, `daemon`, `nobody`) asks for its password and fails, as on the real systems;
+  under a new name, the home and what the visitor made in it become that name's.
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
 - `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
   off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
