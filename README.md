@@ -158,6 +158,11 @@ lines up (`~~` marks are not printed and do not count). On a screen too narrow f
 rows, the run of spaces shrinks, down to two, until each row fits. Project rows also get
 a little extra space between them.
 
+The example letter dates a project twice: the real date struck through, then the same day in the
+machine's own year (`~~2025-06-01~~ {year}-06-01`), so each machine seems to have had it in its own
+time. On a machine that keeps the visitor's own time (the Debian server), a struck date followed by a
+`{year}` date shows only the real date, not struck, in the same column.
+
 ## Commands
 
 `help` lists what a visitor needs to get around, including `fill`, which puts the cable
