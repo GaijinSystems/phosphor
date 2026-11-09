@@ -190,8 +190,9 @@ holds at most 4 MB; past that, the write stops and the machine says its disk is 
 On the Unix machines, the commands `help` lists have a manual page (`man ls`) and a usage
 line (`ls -h`), except that `echo -h` prints `-h`, as it should, and `fill -h` simply fills the screen; on Linux, where `-h` means
 something else to GNU's tools, the usage line is `ls --help`. The Linux machine's bash also
-completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`; the C shell of 4.3BSD
-and IRIX has `!!` and `history` too. PageUp and PageDown scroll back through the output
+completes names with tab (twice lists the choices), repeats with `!!` and takes `$(command)`, `[[ ]]`, `(( ))`,
+`let`, `printf` and `{a,b}` brace expansion; the C shell of 4.3BSD and IRIX has `!!`, `history` and `{a,b}` too. On
+4.3BSD, `sh` starts the Bourne shell, as `/bin/sh` did there; `exit` or ^D goes back to the C shell. PageUp and PageDown scroll back through the output
 once it has finished typing.
 
 To add a command that prints text, use a `== command: ==` section. To add one that does
@@ -247,7 +248,8 @@ the console teletype, again at each login (`stty` says `speed 110 baud`, `erase 
   the printer and Ctrl-Q, or any other key, starts it again; Ctrl-C (or Delete, the teletype's RUB OUT) stops the
   output and, as V7 did, throws away what was typed ahead.
 - The paper is 72 columns wide and V7 did no wrapping: what goes past the 72nd column strikes over it. V7 sent seven
-  bits a character, so a character beyond ASCII prints as the low seven bits of each of its bytes (`é` as `C)`).
+  bits a character, so a character beyond ASCII prints as the low seven bits of each of its bytes (`é` as `C)`). A tab
+  goes out as spaces to the next eighth column, as the driver did for a teletype without tab stops (`-tabs`).
 - Capitals only. The keyboard has no small letters and no `` ` { | } ~ `` keys; with V7's `lcase` the capitals it sends
   are taken as small letters, a capital is typed as `\A`, and `` ` { | } ~ `` are typed and printed as `\'`, `\(`,
   `\!`, `\)` and `\^` (so a pipe is `\!`). Small letters print as capitals. `stty -lcase` turns this off, after which
@@ -256,7 +258,8 @@ the console teletype, again at each login (`stty` says `speed 110 baud`, `erase 
   erase character. They are printed, not rubbed out, as on paper, and typing goes on only at the end of the line;
   `\#` and `\@` are the characters themselves. The `@` is followed by a new line, even after a `\`, as V7 echoed it.
 - `stty erase x` and `stty kill x` (`^h` for a control character) change the two, and `stty ek` puts them back.
-  `stty -echo` stops the echo; `stty cbreak` and `stty raw` hand over what is typed as it is, with nothing erased or
+  `stty -echo` stops the echo, the RETURN's new line too, so what comes next is printed straight after the prompt;
+  `stty cbreak` and `stty raw` hand over what is typed as it is, with nothing erased or
   killed, and `raw` sends `` ` { | } ~ `` out unescaped. The shell still reads a line at a time, and Ctrl-C still
   interrupts. `stty 0` hangs up the line, which logs out. The up and down arrows give back lines as they were typed on
   the teletype.
@@ -340,7 +343,9 @@ Another attention at that read only puts it up again. `LOGOFF`, `IPL` or `SYSTEM
 running beside it, ends all that was going on beside it once CP has typed what it says. `DISCONN` keeps the virtual
 machine: what it was doing runs on unseen (its output is lost, as on VM/370 without a spooled console), and a `LOGON`
 within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
-counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on.
+counts from DISCONN) reconnects to it (`RECONNECTED AT`) in CP mode, where `BEGIN` lets it go on. A read it makes
+meanwhile, an EXEC's or the editor's, waits for that and then takes the next line typed. `DISCONN HOLD`, which kept a
+dial-up line from being dropped, looks the same here.
 For this `cms.js` uses `Phosphor.aside`, which runs a machine's own steps beside a pending read, their output above
 the line being typed. At every attention CP types an exclamation point and starts a new line (`TERMINAL ATTN OFF`
 leaves out both, so the next read goes on in the same line, after the text an attention cut short too, and what the
@@ -801,15 +806,21 @@ sites that share one host keep apart. What is kept: what the visitor made, chang
 (or anywhere on the disk on MS-DOS and CP/M), and what root changed anywhere, system files included. A second name made
 with `ln` is kept as a link to the same file and comes back as one after a reload, and a moved file keeps what its old
 place gave it: a moved story file still plays, a moved device is still a device, and a file whose text is made as it is
-read (`/etc/passwd` and the like) still makes it, unless root wrote new text into it. `/tmp` is not kept: a reload is a
+read (`/etc/passwd` and the like) still makes it, unless root wrote new text into it. A file moved and not changed is
+kept by where it came from, so it costs nothing from the room below. `/tmp` is not kept: a reload is a
 reboot, and each of these systems emptied `/tmp` when it booted. Only the changes are kept, each with a note of what the
 file was when it booted, so when you change a file in `site/` (or a new release changes a system file) a visitor's copy
-of that file is dropped and your new version shows; their other changes stay. To start a machine over, clear the site's
+of that file is dropped and your new version shows; their other changes stay. That goes for a file they moved and
+did not change, too: the move is dropped and your new version is back in its own place. Where you add a file with the
+name of a folder the visitor made, their folder and what is in it are left out, and at the next boot the machine says
+so as its own `mkdir` says a name is taken (`mkdir: cannot make directory foo` on V7, `Unable to create directory` on
+MS-DOS, `%CREATE-E-DIRNOTCRE` on VMS), once. To start a machine over, clear the site's
 data in the browser; `persist: no` stops the keeping (what a browser has kept stays there, unused). Each machine keeps
 at most 256K characters, so the other machines and the games keep their room in the browser's storage (about 5 MB for
 each web address). When the changes outgrow that, or the browser's storage is full, the largest changed files are left
 out (they stay for the visit, and the rest is kept), and the machine says its disk is full in its own words
-(`no space on dev 6/0` on V7, `write error: No space left on device` on 4.3BSD, IRIX and Debian,
+(`no space on dev 6/0` on V7, `write error: No space left on device` after the name of the program that wrote the file
+on 4.3BSD, IRIX and Debian,
 `Insufficient disk space` on MS-DOS, `DISK WRITE ERROR` on CP/M, `%SYSTEM-F-EXDISKQUOTA` on VMS, `?Quota exceeded` on
 TOPS-20), once each time another file is left out; removing files says nothing. What the full browser left out is kept
 at the next prompt that finds room. When the browser has no room left, the disks of the TRS-80, the Apple IIe and the

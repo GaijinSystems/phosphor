@@ -98,15 +98,18 @@ behind gaijin.systems.
   an enabled `OPERATOR`) can change or remove them. MS-DOS and CP/M mark them read-only instead, and `ATTRIB -R` and
   `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder. A second name
   made with `ln` is kept as a link and comes back as one after a reload, and a moved file keeps what made it work (a
-  story file, a device). Each machine keeps at most 256K characters; what does not fit is left out, largest first,
-  and the disk is said to be full once for it. A site keeps its own saves when other sites share its host
+  story file, a device); one moved and not changed is kept by where it came from, and gives way as the file does.
+  A folder of the visitor's where the site has since put a file is left out, and the machine's `mkdir` says so at
+  boot. Each machine keeps at most 256K characters; what does not fit is left out, largest first,
+  and the disk is said to be full once for it, naming the program that wrote it. A site keeps its own saves when other sites share its host
   (`https://example.github.io/`).
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
 - `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
   off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
   line end, 72 columns, capitals only through V7's `lcase` mapping (`\!` for a pipe), `#` to erase a character and `@`
   to kill the line, the clack, carriage return and bell made in the browser, and `stty` that reports the line and
-  changes `lcase`, `echo`, `cbreak`, `raw` and the erase and kill characters, and hangs up at `stty 0`.
+  changes `lcase`, `echo`, `cbreak`, `raw` and the erase and kill characters, and hangs up at `stty 0`. Tabs go out as
+  spaces, as V7's `-tabs` had them, and with `-echo` the output follows the prompt on the same line.
 - File names, commands and aliases follow the machine's `case:` setting; Unix is case-sensitive.
 - Glow colours follow `--phos-rgb`, `--dim-rgb` and `--err-rgb`, so a theme recolours the
   whole tube, and the amber example is one line.
@@ -160,7 +163,8 @@ behind gaijin.systems.
   it up again; `LOGOFF`, `IPL` or `SYSTEM RESET` there, or in an EXEC running beside it, ends all that was going on
   beside it once CP has typed what it says, and `DISCONN` keeps the virtual machine running unseen, for a `LOGON`
   within 15 minutes (VM/370 logs a disconnected machine off 15 minutes after it reads from the terminal; here the time
-  counts from DISCONN) to reconnect to (`RECONNECTED AT`, in CP mode until `BEGIN`). This uses `Phosphor.aside`, which
+  counts from DISCONN) to reconnect to (`RECONNECTED AT`, in CP mode until `BEGIN`); a read it makes meanwhile, an
+  EXEC's or the editor's, waits for the reconnection. This uses `Phosphor.aside`, which
   runs output beside a pending read. CP types `!` at each attention (with `TERMINAL ATTN OFF` neither that nor a new
   line: the read goes on in the same line, after any output the attention cut short, and what the command or EXEC
   types meanwhile comes below that line, where the carriage stayed, through a new `Phosphor.onInterrupt` answer,
@@ -268,7 +272,8 @@ behind gaijin.systems.
   script is checked for syntax errors a whole command at a time, including one whose quote runs over several lines,
   before that command runs, and a here-document's word (`<<'EOF'`, `<<"EOF"`) no longer hides the lines after it from
   the check. GNU grep reads `-` as its input; `wc` of a directory on V7, 4.3BSD and IRIX counts the bytes of its raw
-  entries (16 to an entry, V7's layout; 4.3BSD's and IRIX's real layouts differ). `x=1` on CP/M and MS-DOS is a command
+  entries (16 to an entry on V7; on 4.3BSD its `direct` entries in 512-byte blocks, which IRIX, whose EFS layout no
+  source here settles, shares). `x=1` on CP/M and MS-DOS is a command
   like any other (`X=1?`, `Bad command or file name`).
 - Here-documents in all three shells: `<<EOF` in bash and V7 sh (bash also `<<-EOF`, which drops the tabs before each
   line; V7 reads `-EOF` as the word) and `<< word` in csh, typed after the shell's `>` prompt (csh's `heredoc` reads
@@ -281,6 +286,17 @@ behind gaijin.systems.
   prints its zeros. bash has indexed and associative arrays: `x=(a b)`, `x[3]=d`, `x+=(e)`, `${x[1]}`, `${x[@]}` (a
   word each in `"${x[@]}"`), `${#x[@]}`, `${!x[@]}`, `${#x}`, `unset 'x[1]'`, `declare -a`, `declare -A` (its keys in
   bash's own order) and `declare -p`.
+- bash has `(( ))`, `let`, `printf` (`%s %b %q %c %d %i %o %u %x %e %f %g`, flags, widths and precisions, the format
+  again for words left over, `-v`), `[[ ]]` (patterns, `=~` and `BASH_REMATCH`, `-eq` and the rest as arithmetic, file tests,
+  `&&`, `||`, `!`, `( )`), brace expansion (`{a,b}`, `{1..5}`, `{a..e}`, `{01..10..2}`), `unalias [-a]`, `set -- a b` and
+  `set a b` for `$1` `$#` and `$@`, and an array assignment over several lines. A `$(( ))` that goes wrong in a pipeline
+  ends only its own command; in a script the error, and `let`'s and `(( ))`'s, start with `name: line N:`, and a
+  here-document cut short by the end of a script is warned about once. A `` `command` `` that does not read says so
+  with `command substitution: line N:` and gives status 2 (`` echo `echo a\`b` ``), and ``x=`cmd` `` takes cmd's status.
+- 4.3BSD and IRIX csh expand `{a,b}`, take `\!*`, `\!^`, `\!$` and `\!:n` in an alias, unalias a pattern
+  (`unalias r*`), say `x=1: Command not found.`, and run the commands before a here-document on its line first.
+- 4.3BSD's `sh` is the Bourne shell, as `/bin/sh` was there: `sh` at the `%` prompt starts one (`$`, V7's grammar and
+  messages) until `exit` or ^D; `sh file`, `sh -c` and `#!/bin/sh` scripts run in it.
 - `x = 1` and `x=1` on VM/370, Multics and TOPS-20 are lines like any other for the machine to answer; only VMS takes
   them as a symbol assignment. The terminal's own commands (`help`, `mail` and the rest) reach CMS as typed,
   blanks and all.
