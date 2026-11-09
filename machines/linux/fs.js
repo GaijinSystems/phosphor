@@ -56,6 +56,7 @@ Phosphor.setup(function(P){
   var GAMES={'/usr/games/frotz':139152,'/usr/games/sl':26568,'/usr/games/cowsay':4608,'/usr/games/fortune':35664,'/usr/bin/cmatrix':22608};
   Object.keys(GAMES).forEach(function(f){if(P.find(f,true))sys(f,'f',{bin:true,size:GAMES[f],date:new Date(2025,10,2,19,4)})});
   if(P.find('/usr/games/cowsay',true))P.find('/usr/games',true).kids.cowthink=P.find('/usr/games/cowsay',true);
+  if(P.find('/usr/bin/python3.13',true)){sys('/usr/bin/python3.13','f',{bin:true,size:6832784,date:new Date(2026,7,10,12,6)});P.find('/usr/bin',true).kids.python3=P.find('/usr/bin/python3.13',true)} /* python3 is python3.13 */
 
   var V=['/boot/vmlinuz-'+D.krel,'/boot/initrd.img-'+D.krel];
   sys(V[0],'f',{bin:true,size:11829952,date:UPG,mode:'-rw-r--r--'});
