@@ -63,6 +63,10 @@ commands:
 # (.trash/core); a trailing / makes a locked folder.
 protected: photo01.pic, photo02.pic, secrets, .trash/core
 
+# Files and folders in the home that are the visitor's own, as their shell startup files are: they may
+# change or remove them, and add to a folder named here. Every other file the site gives is read-only.
+# guest files: .plan, .trash
+
 # What visitors change in the files (their own, and whatever root changes) is kept in their
 # browser for their next visit. Without this line: yes. no = a reload puts every file back.
 # persist:  no
