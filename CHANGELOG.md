@@ -292,7 +292,7 @@ behind gaijin.systems.
   `set a b` for `$1` `$#` and `$@`, and an array assignment over several lines. A `$(( ))` that goes wrong in a pipeline
   ends only its own command; in a script the error, and `let`'s and `(( ))`'s, start with `name: line N:`, and a
   here-document cut short by the end of a script is warned about once. A `` `command` `` that does not read says so
-  with `command substitution: line N:` and gives status 2 (`` echo `echo a\`b` ``), and ``x=`cmd` `` takes cmd's status.
+  with `command substitution: line N:` and gives status 2 (`` x=`echo a\`b` ``), and ``x=`cmd` `` takes cmd's status.
 - 4.3BSD and IRIX csh expand `{a,b}`, take `\!*`, `\!^`, `\!$` and `\!:n` in an alias, unalias a pattern
   (`unalias r*`), say `x=1: Command not found.`, and run the commands before a here-document on its line first.
 - 4.3BSD's `sh` is the Bourne shell, as `/bin/sh` was there: `sh` at the `%` prompt starts one (`$`, V7's grammar and
