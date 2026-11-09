@@ -100,6 +100,10 @@ behind gaijin.systems.
   `STAT NAME $R/W` take that off, as they did. Debian's root can now write outside its home folder. A second name
   made with `ln` is kept as a link and comes back as one after a reload, and a moved file keeps what made it work (a
   story file, a device); one moved and not changed is kept by where it came from, and gives way as the file does.
+  A folder of the visitor's where the site has since put a file is left out, and the machine's `mkdir` says so at
+  boot. Each machine keeps at most 256K characters; what does not fit is left out, largest first,
+  and the disk is said to be full once for it, naming the program that wrote it. A site keeps its own saves when other sites share its host
+  (`https://example.github.io/`).
 - On the Unix machines the guest's home folder is the guest's, and so are the shell startup files in it (`.profile`,
   `.cshrc`, `.bashrc` and the rest): the guest may change or remove them, and their changes are kept
   like any other. A new `guest files:` setting gives the guest more of the site's files and folders the same way. Every
@@ -107,10 +111,6 @@ behind gaijin.systems.
   when locked), so the guest cannot add to or take from its folders. On Debian they also carry the immutable attribute:
   new `lsattr` and `chattr` (e2fsprogs 1.47), refusals in Linux's words (`Operation not permitted`), and root too is
   refused until `chattr -i`.
-  A folder of the visitor's where the site has since put a file is left out, and the machine's `mkdir` says so at
-  boot. Each machine keeps at most 256K characters; what does not fit is left out, largest first,
-  and the disk is said to be full once for it, naming the program that wrote it. A site keeps its own saves when other sites share its host
-  (`https://example.github.io/`).
 - Ctrl-C, Ctrl-D, Ctrl-S, Ctrl-Q and Ctrl-U do what they should; `stty 9600` sets a real line speed.
 - `teletype: yes` gives the V7 machine a `teletype on|off` command (the visitor's choice, remembered in their browser;
   off at first) that puts a Teletype Model 33 on the machine: ten characters a second with the carriage's time at each
