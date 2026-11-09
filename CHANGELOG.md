@@ -13,7 +13,7 @@ behind gaijin.systems.
 - The whole letter is content now (`== mail ==`), not just its project list.
 - `{site}`, `{hostname}`, `{owner}`, `{email}` and `{year}` placeholders in any section's text. On the machine that keeps
   the visitor's own time, a struck date followed by a `{year}` date (`~~2025-06-01~~ {year}-06-01`) shows only the real date.
-- New settings: `title`, `badge`, `source`, `commands`, `hostname`, `prompt`; machine settings
+- New settings: `title`, `badge`, `source`, `commands`, `hostname`, `domain`, `prompt`; machine settings
   `year`, `installed`, `user`, `offline`.
 - New `source` command, pointing at the terminal's source code (GNU AGPL).
 - Files that fail to load (missing, or a stray backtick inside) are named on the screen
