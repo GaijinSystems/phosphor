@@ -577,8 +577,8 @@ catalog and offers all of them; with one machine in the list there is no `connec
      set besides the site's are `installed`, `user`, `homes` or `home`, `case`, `offline`,
      `shell` (`dos`, `dcl` or `bash`), `unix: no` (leave out the Unix commands), `csh`, `perror`,
      `login`, `login prompt`, `login failed`, `root login`, `root prompt`, `root password`, `also root`,
-     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns`, `disk full` and `signals`
-     (`irix`: IRIX's signal numbers and names); the
+     `backdoor`, `closed door`, `not found`, `mail notice`, `ls columns`, `disk full`, `signals`
+     (`irix`: IRIX's signal numbers and names) and `sysv` (System V's sh and the ways of its tools); the
      machines between them use each one, so look there for an example. `root login` (normally
      `root`) with `root password` is an account that logs in as the super-user, at the `root prompt`
      (normally `# `), and the Unix machines' `su` takes the same password; at the login prompt it
