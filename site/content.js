@@ -8,6 +8,7 @@ Phosphor.content(String.raw`
 == welcome ==
 welcome to phosphor-9.
 ~ type help and press return.
+~ type connect to try another machine.
 
 # What the about command prints.
 == about ==

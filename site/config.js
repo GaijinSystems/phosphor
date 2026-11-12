@@ -16,7 +16,7 @@ Phosphor.content(String.raw`
 # The machine behind the glass, and which others the connect command offers (see
 # machines/machines.js). Unset: the first one, and all of them. One machine: no connect.
 # machine: random picks one of them for each browser tab (the C128 sits out the draw).
-machine:  random
+machine:  v7
 
 # Your name. The first word (up to 8 letters) is the owner's login, shown in ls -l,
 # who and on the mail. {owner} in any section's text becomes that word.
