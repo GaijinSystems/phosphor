@@ -4,6 +4,7 @@ A 1979 video terminal for your website. Visitors land at a glowing green screen 
 coiled cable, log in as `guest`, and poke around a small Version 7 Unix machine: `ls`,
 `cat`, `mail`, `man`, `who`, `ps`, a few secrets. You fill it with your own words. Twelve more
 machines can be plugged in, from an IBM mainframe, Multics, a TRS-80, an Apple IIe and a Commodore 128 to a Debian server of today, and a dial-up bulletin board too; most of them come with their games.
+[Try the live demo](https://phosphor.gaijin.systems/).
 
 Plain HTML, CSS and JavaScript. No build step, no frameworks, no server code, and no
 requests to anyone else's servers.
