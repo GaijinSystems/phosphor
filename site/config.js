@@ -17,6 +17,7 @@ Phosphor.content(String.raw`
 # machines/machines.js). Unset: the first one, and all of them. One machine: no connect.
 # machine: random picks one of them for each browser tab (the C128 sits out the draw).
 machine:  v7
+machines: v7, vm370, trs80, multics, cpm, apple2, tops20, c128, bsd, dos, vms, bbs, irix, linux
 
 # Your name. The first word (up to 8 letters) is the owner's login, shown in ls -l,
 # who and on the mail. {owner} in any section's text becomes that word.
